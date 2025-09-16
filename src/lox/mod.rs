@@ -1,13 +1,20 @@
 use std::fs;
 
+use crate::lox::scanner::Scanner;
+mod scanner;
+mod token;
+
 pub struct Lox {}
 
 impl Lox {
     pub fn new() -> Self {
         return Lox {};
     }
-    pub fn run(self: &Self, str: String) -> Result<String, String> {
-        return Ok(str);
+    pub fn run(self: &Self, src: String) -> Result<String, String> {
+        let mut scanner = Scanner::new(src);
+        scanner.scan_tokens()?;
+        scanner.debug_print();
+        return Ok("".to_string());
     }
     pub fn run_file(self: &Self, path: String) -> Result<String, String> {
         match fs::read_to_string(path) {

@@ -18,7 +18,7 @@ fn main() {
             print!(">> ");
             io::stdout().flush().expect("Failed to flush");
             match io::stdin().read_line(&mut line) {
-                Ok(v) => match lox.run(line) {
+                Ok(_) => match lox.run(line) {
                     Ok(res) => {
                         print!("{}", res);
                     }
@@ -26,14 +26,14 @@ fn main() {
                         print!("{}", e);
                     }
                 },
-                Err(e) => {
+                Err(_) => {
                     println!("Failed to read line shutting down");
                     break;
                 }
             }
         }
     } else {
-        if let Err(e) = lox.run_file(args.script) {
+        if let Err(_) = lox.run_file(args.script) {
             std::process::exit(1);
         }
     }
