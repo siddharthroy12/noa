@@ -61,7 +61,7 @@ impl Scanner {
         return Ok("".to_string());
     }
 
-    fn scan_string_token(self: &mut Self) -> Result<(), String> {
+    fn scan_string_literal(self: &mut Self) -> Result<(), String> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -92,7 +92,7 @@ impl Scanner {
         Ok(())
     }
 
-    fn scan_number_token(self: &mut Self) -> Result<(), String> {
+    fn scan_number_literal(self: &mut Self) -> Result<(), String> {
         while self.peek().is_digit(10) {
             self.advance();
         }
@@ -162,11 +162,11 @@ impl Scanner {
             '\n' => {
                 self.line += 1;
             }
-            '"' => self.scan_string_token()?,
+            '"' => self.scan_string_literal()?,
 
             _ => {
                 if c.is_digit(10) {
-                    self.scan_number_token()?;
+                    self.scan_number_literal()?;
                 } else if c.is_alphanumeric() {
                     self.scan_identifier_token()?;
                 } else {
