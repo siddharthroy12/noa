@@ -80,7 +80,7 @@ impl Scanner {
     }
 
     fn scan_identifier_token(self: &mut Self) -> Result<(), String> {
-        while self.peek().is_alphanumeric() {
+        while self.peek().is_alphanumeric() || self.peek() == '_' {
             self.advance();
         }
         let value = &self.source[self.start..self.current];
@@ -204,7 +204,7 @@ impl Scanner {
             _ => {
                 if c.is_digit(10) {
                     self.scan_number_literal()?;
-                } else if c.is_alphanumeric() {
+                } else if c.is_alphanumeric() || c == '_' {
                     self.scan_identifier_token()?;
                 } else {
                     return Err(format!("Unexpected character '{}'", c));
