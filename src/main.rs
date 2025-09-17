@@ -8,7 +8,6 @@ struct Args {
     #[arg(default_value_t = String::new())]
     script: String,
 }
-
 fn main() {
     let args = Args::parse();
     let lox = Lox::new();
@@ -19,11 +18,9 @@ fn main() {
             io::stdout().flush().expect("Failed to flush");
             match io::stdin().read_line(&mut line) {
                 Ok(_) => match lox.run(line) {
-                    Ok(res) => {
-                        print!("{}", res);
-                    }
+                    Ok(_) => {}
                     Err(e) => {
-                        print!("{}", e);
+                        println!("{}", e);
                     }
                 },
                 Err(_) => {

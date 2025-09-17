@@ -66,6 +66,7 @@ impl Scanner {
             if self.peek() == '\n' {
                 self.line += 1;
             }
+
             self.advance();
         }
 
@@ -89,6 +90,42 @@ impl Scanner {
             .unwrap_or(&TokenType::Identifier)
             .clone();
         self.add_token_with_literal(token_type, Some(Box::new(value.to_owned())));
+        Ok(())
+    }
+
+    fn skip_single_line_comment(self: &mut Self) -> Result<(), String> {
+        while self.peek() != '\n' && !self.is_at_end() {
+            self.advance();
+        }
+        Ok(())
+    }
+
+    fn skip_multi_line_comment(self: &mut Self) -> Result<(), String> {
+        while !(self.peek() == '*' && self.peek_next() == '/') && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            if self.peek() == '/' && self.peek_next() == '*' {
+                self.advance();
+                self.advance();
+
+                self.skip_multi_line_comment()?;
+            } else {
+                self.advance();
+            }
+        }
+
+        if self.is_at_end() {
+            return Err(String::from("Unterminated comment"));
+        }
+        // Consume *
+        self.advance();
+
+        if self.is_at_end() {
+            return Err(String::from("Unterminated comment"));
+        }
+        // Consume /
+        self.advance();
         Ok(())
     }
 
@@ -151,9 +188,9 @@ impl Scanner {
             }
             '/' => {
                 if self.match_next_char('/') {
-                    while self.peek() != '\n' && !self.is_at_end() {
-                        self.advance();
-                    }
+                    self.skip_single_line_comment()?;
+                } else if self.match_next_char('*') {
+                    self.skip_multi_line_comment()?;
                 } else {
                     self.add_token(TokenType::Slash);
                 }
@@ -170,7 +207,7 @@ impl Scanner {
                 } else if c.is_alphanumeric() {
                     self.scan_identifier_token()?;
                 } else {
-                    return Err("Unexpected character.".to_string());
+                    return Err(format!("Unexpected character '{}'", c));
                 }
             }
         }
