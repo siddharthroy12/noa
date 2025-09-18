@@ -35,7 +35,7 @@ impl Expression {
 
         for expr in expressions {
             res.push(' ');
-            res.push_str(&self.print());
+            res.push_str(&expr.print());
         }
 
         res.push(')');

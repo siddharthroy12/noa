@@ -44,6 +44,7 @@ impl Scanner {
     }
 
     pub fn debug_print(self: &Self) {
+        println!("---Tokens Start---");
         for (i, token) in self.tokens.iter().enumerate() {
             if (token.lexeme.len() > 0) {
                 println!("{}: {} {:?}", i, token.lexeme, token.token_type)
@@ -51,6 +52,7 @@ impl Scanner {
                 println!("{}: {:?}", i, token.token_type)
             }
         }
+        println!("---Tokens End---");
     }
 
     fn is_at_end(self: &Self) -> bool {

@@ -20,15 +20,15 @@ impl Lox {
             return Err(self.report(err.line, err.location, err.message));
         }
 
-        scanner.debug_print();
+        // scanner.debug_print();
 
         let mut parser: Parser = Parser::new(scanner.tokens);
-        match parser.generateTree() {
+        match parser.generate_tree() {
             Err(err) => {
                 return Err(self.report(err.line, err.location, err.message));
             }
             Ok(expression) => {
-                expression.print();
+                println!("Tree: {}", expression.print());
             }
         }
         return Ok(());

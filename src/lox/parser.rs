@@ -1,8 +1,6 @@
-use std::primitive;
-
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
-    self, BinaryExpression, Expression, GroupExpression, LiteralExpression, UnaryExpression,
+    BinaryExpression, Expression, GroupExpression, LiteralExpression, UnaryExpression,
 };
 use crate::lox::token::{Token, TokenType};
 
@@ -16,7 +14,7 @@ impl Parser {
         return Parser { tokens, current: 0 };
     }
 
-    pub fn generateTree(self: &mut Self) -> Result<Expression, LoxError> {
+    pub fn generate_tree(self: &mut Self) -> Result<Expression, LoxError> {
         match self.parse_expression() {
             Ok(expression) => {
                 return Ok(expression);
@@ -65,8 +63,6 @@ impl Parser {
     }
 
     fn parse_expression(self: &mut Self) -> Result<Expression, String> {
-        println!("here");
-
         return self.parse_equality();
     }
 
@@ -153,50 +149,46 @@ impl Parser {
     }
 
     fn parse_primary(self: &mut Self) -> Result<Expression, String> {
-        match self.peek().token_type {
-            TokenType::False => {
-                return Ok(Expression::Literal(LiteralExpression {
-                    value: Some(super::types::Object::Bool(true)),
-                }));
-            }
-            TokenType::True => {
-                return Ok(Expression::Literal(LiteralExpression {
-                    value: Some(super::types::Object::Bool(false)),
-                }));
-            }
-            TokenType::Nil => {
-                return Ok(Expression::Literal(LiteralExpression { value: None }));
-            }
-            TokenType::Number => {
-                return Ok(Expression::Literal(LiteralExpression {
-                    value: self.previous().litral.clone(),
-                }));
-            }
-            TokenType::String => {
-                return Ok(Expression::Literal(LiteralExpression {
-                    value: self.previous().litral.clone(),
-                }));
-            }
-            TokenType::LeftParen => {
-                let expr = self.parse_expression()?;
-                match self.consume(
-                    TokenType::RightParen,
-                    "Expect ')' after expression.".to_string(),
-                ) {
-                    Ok(_) => {
-                        return Ok(Expression::Group(GroupExpression {
-                            expression: Box::new(expr),
-                        }));
-                    }
-                    Err(err) => {
-                        return Err(err);
-                        // We are going to stop right here
-                    }
+        if self.match_token_types(&[TokenType::False]) {
+            return Ok(Expression::Literal(LiteralExpression {
+                value: Some(super::types::Object::Bool(false)),
+            }));
+        }
+
+        if self.match_token_types(&[TokenType::True]) {
+            return Ok(Expression::Literal(LiteralExpression {
+                value: Some(super::types::Object::Bool(true)),
+            }));
+        }
+        if self.match_token_types(&[TokenType::Nil]) {
+            return Ok(Expression::Literal(LiteralExpression { value: None }));
+        }
+
+        if self.match_token_types(&[TokenType::Number, TokenType::String]) {
+            return Ok(Expression::Literal(LiteralExpression {
+                value: self.previous().litral.clone(),
+            }));
+        }
+
+        if self.match_token_types(&[TokenType::LeftParen]) {
+            let expr = self.parse_expression()?;
+            match self.consume(
+                TokenType::RightParen,
+                "Expect ')' after expression.".to_string(),
+            ) {
+                Ok(_) => {
+                    return Ok(Expression::Group(GroupExpression {
+                        expression: Box::new(expr),
+                    }));
+                }
+                Err(err) => {
+                    // We are going to stop right here
+                    return Err(err);
                 }
             }
-            _ => {}
         }
-        return Err(String::from("Something went wrong"));
+
+        return Err(String::from("Unexpected character"));
     }
 
     fn consume(self: &mut Self, token_type: TokenType, message: String) -> Result<&Token, String> {
