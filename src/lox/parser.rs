@@ -22,7 +22,14 @@ impl Parser {
             Err(err) => {
                 return Err(LoxError {
                     line: self.peek().line,
-                    location: format!(" at {}", self.peek().lexeme),
+                    location: format!(
+                        " at '{}'",
+                        if self.peek().token_type == TokenType::EOF {
+                            "eof"
+                        } else {
+                            &self.peek().lexeme
+                        }
+                    ),
                     message: err,
                 });
             }
@@ -195,15 +202,7 @@ impl Parser {
         if self.check(&token_type) {
             return Ok(self.advance());
         }
-        return Err(self.error(self.peek().clone(), message));
-    }
-
-    fn error(self: &mut Self, token: Token, message: String) -> String {
-        if token.token_type == TokenType::EOF {
-            return format!("{} at end", message);
-        } else {
-            return format!("{} at '{}'", message, token.lexeme);
-        }
+        return Err(message);
     }
 
     fn synchronize(self: &mut Self) {
