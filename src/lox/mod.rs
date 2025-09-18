@@ -19,8 +19,10 @@ impl Lox {
         if let Err(err) = scanner.scan_tokens() {
             return Err(self.report(err.line, err.location, err.message));
         }
+
         scanner.debug_print();
-        let mut parser = Parser::new(scanner.tokens);
+
+        let mut parser: Parser = Parser::new(scanner.tokens);
         match parser.generateTree() {
             Err(err) => {
                 return Err(self.report(err.line, err.location, err.message));

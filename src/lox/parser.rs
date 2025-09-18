@@ -2,38 +2,32 @@ use std::primitive;
 
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
-    BinaryExpression, Expression, GroupExpression, LiteralExpression, UnaryExpression,
+    self, BinaryExpression, Expression, GroupExpression, LiteralExpression, UnaryExpression,
 };
 use crate::lox::token::{Token, TokenType};
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
-    failed: bool,
-    failed_message: String,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        return Parser {
-            tokens,
-            current: 0,
-            failed: false,
-            failed_message: String::new(),
-        };
+        return Parser { tokens, current: 0 };
     }
 
     pub fn generateTree(self: &mut Self) -> Result<Expression, LoxError> {
-        let expression = self.parse_expression();
-
-        if self.failed {
-            return Err(LoxError {
-                line: self.peek().line,
-                location: format!(" at {}", self.peek().lexeme),
-                message: self.failed_message.clone(),
-            });
-        } else {
-            return Ok(expression);
+        match self.parse_expression() {
+            Ok(expression) => {
+                return Ok(expression);
+            }
+            Err(err) => {
+                return Err(LoxError {
+                    line: self.peek().line,
+                    location: format!(" at {}", self.peek().lexeme),
+                    message: err,
+                });
+            }
         }
     }
     fn is_at_end(self: &Self) -> bool {
@@ -70,17 +64,18 @@ impl Parser {
         return false;
     }
 
-    fn parse_expression(self: &mut Self) -> Expression {
-        print!("here");
+    fn parse_expression(self: &mut Self) -> Result<Expression, String> {
+        println!("here");
+
         return self.parse_equality();
     }
 
-    fn parse_equality(self: &mut Self) -> Expression {
-        let mut expr: Expression = self.parse_comparison();
+    fn parse_equality(self: &mut Self) -> Result<Expression, String> {
+        let mut expr: Expression = self.parse_comparison()?;
 
         while self.match_token_types(&[TokenType::BangEqual, TokenType::EqualEqual]) {
             let operator = self.previous().clone();
-            let right: Expression = self.parse_comparison();
+            let right: Expression = self.parse_comparison()?;
             expr = Expression::Binary(BinaryExpression {
                 left: Box::new(expr),
                 operator: operator,
@@ -88,11 +83,11 @@ impl Parser {
             })
         }
 
-        return expr;
+        return Ok(expr);
     }
 
-    fn parse_comparison(self: &mut Self) -> Expression {
-        let mut expr: Expression = self.parse_term();
+    fn parse_comparison(self: &mut Self) -> Result<Expression, String> {
+        let mut expr: Expression = self.parse_term()?;
 
         while self.match_token_types(&[
             TokenType::Greater,
@@ -101,7 +96,7 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let operator = self.previous().clone();
-            let right = self.parse_term();
+            let right = self.parse_term()?;
             expr = Expression::Binary(BinaryExpression {
                 left: Box::new(expr),
                 operator: operator,
@@ -109,15 +104,15 @@ impl Parser {
             })
         }
 
-        return expr;
+        return Ok(expr);
     }
 
-    fn parse_term(self: &mut Self) -> Expression {
-        let mut expr: Expression = self.parse_factor();
+    fn parse_term(self: &mut Self) -> Result<Expression, String> {
+        let mut expr: Expression = self.parse_factor()?;
 
         while self.match_token_types(&[TokenType::Minus, TokenType::Plus]) {
             let operator = self.previous().clone();
-            let right = self.parse_term();
+            let right = self.parse_term()?;
             expr = Expression::Binary(BinaryExpression {
                 left: Box::new(expr),
                 operator: operator,
@@ -125,15 +120,15 @@ impl Parser {
             })
         }
 
-        return expr;
+        return Ok(expr);
     }
 
-    fn parse_factor(self: &mut Self) -> Expression {
-        let mut expr: Expression = self.parse_unary();
+    fn parse_factor(self: &mut Self) -> Result<Expression, String> {
+        let mut expr: Expression = self.parse_unary()?;
 
         while self.match_token_types(&[TokenType::Star, TokenType::Slash]) {
             let operator = self.previous().clone();
-            let right = self.parse_unary();
+            let right = self.parse_unary()?;
             expr = Expression::Binary(BinaryExpression {
                 left: Box::new(expr),
                 operator: operator,
@@ -141,82 +136,81 @@ impl Parser {
             })
         }
 
-        return expr;
+        return Ok(expr);
     }
 
-    fn parse_unary(self: &mut Self) -> Expression {
+    fn parse_unary(self: &mut Self) -> Result<Expression, String> {
         if self.match_token_types(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
-            let right = self.parse_unary();
-            return Expression::Unary(UnaryExpression {
+            let right = self.parse_unary()?;
+            return Ok(Expression::Unary(UnaryExpression {
                 operator: operator,
                 right: Box::new(right),
-            });
+            }));
         }
 
         return self.parse_primary();
     }
 
-    fn parse_primary(self: &mut Self) -> Expression {
+    fn parse_primary(self: &mut Self) -> Result<Expression, String> {
         match self.peek().token_type {
             TokenType::False => {
-                return Expression::Literal(LiteralExpression {
+                return Ok(Expression::Literal(LiteralExpression {
                     value: Some(super::types::Object::Bool(true)),
-                });
+                }));
             }
             TokenType::True => {
-                return Expression::Literal(LiteralExpression {
+                return Ok(Expression::Literal(LiteralExpression {
                     value: Some(super::types::Object::Bool(false)),
-                });
+                }));
             }
             TokenType::Nil => {
-                return Expression::Literal(LiteralExpression { value: None });
+                return Ok(Expression::Literal(LiteralExpression { value: None }));
             }
             TokenType::Number => {
-                return Expression::Literal(LiteralExpression {
+                return Ok(Expression::Literal(LiteralExpression {
                     value: self.previous().litral.clone(),
-                });
+                }));
             }
             TokenType::String => {
-                return Expression::Literal(LiteralExpression {
+                return Ok(Expression::Literal(LiteralExpression {
                     value: self.previous().litral.clone(),
-                });
+                }));
             }
             TokenType::LeftParen => {
-                let expr = self.parse_expression();
+                let expr = self.parse_expression()?;
                 match self.consume(
                     TokenType::RightParen,
                     "Expect ')' after expression.".to_string(),
                 ) {
-                    Some(_) => {
-                        return Expression::Group(GroupExpression {
+                    Ok(_) => {
+                        return Ok(Expression::Group(GroupExpression {
                             expression: Box::new(expr),
-                        });
+                        }));
                     }
-                    None => {
+                    Err(err) => {
+                        return Err(err);
                         // We are going to stop right here
                     }
                 }
             }
             _ => {}
         }
-        return Expression::Literal(LiteralExpression { value: None });
+        return Err(String::from("Something went wrong"));
     }
 
-    fn consume(self: &mut Self, token_type: TokenType, message: String) -> Option<&Token> {
+    fn consume(self: &mut Self, token_type: TokenType, message: String) -> Result<&Token, String> {
         if self.check(&token_type) {
-            return Some(self.advance());
+            return Ok(self.advance());
         }
-        self.error(self.peek().clone(), message);
-        return None;
+        return Err(self.error(self.peek().clone(), message));
     }
 
-    fn error(self: &mut Self, token: Token, message: String) {
-        self.failed = true;
+    fn error(self: &mut Self, token: Token, message: String) -> String {
         if token.token_type == TokenType::EOF {
-            self.failed_message = format!("{} at end", message);
+            return format!("{} at end", message);
         } else {
-            self.failed_message = format!("{} at '{}'", message, token.lexeme);
+            return format!("{} at '{}'", message, token.lexeme);
         }
     }
 
