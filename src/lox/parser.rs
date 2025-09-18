@@ -178,7 +178,7 @@ impl Parser {
         }
 
         if self.match_token_types(&[TokenType::LeftParen]) {
-            let expr = self.parse_expression()?;
+            let expr = self.parse_comma_operator()?;
             match self.consume(
                 TokenType::RightParen,
                 "Expect ')' after expression.".to_string(),
@@ -196,6 +196,22 @@ impl Parser {
         }
 
         return Err(String::from("Unexpected character"));
+    }
+
+    fn parse_comma_operator(self: &mut Self) -> Result<Expression, String> {
+        let mut expr = self.parse_expression()?;
+
+        while self.match_token_types(&[TokenType::Comma]) {
+            let operator = self.previous().clone();
+            let right = self.parse_expression()?;
+            expr = Expression::Binary(BinaryExpression {
+                left: Box::new(expr),
+                operator: operator,
+                right: Box::new(right),
+            })
+        }
+
+        return Ok(expr);
     }
 
     fn consume(self: &mut Self, token_type: TokenType, message: String) -> Result<&Token, String> {
