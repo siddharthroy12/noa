@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap};
 
-use crate::lox::token::TokenType;
+use crate::lox::{token::TokenType, types::Object};
 
 use super::token::Token;
 
@@ -45,7 +45,11 @@ impl Scanner {
 
     pub fn debug_print(self: &Self) {
         for (i, token) in self.tokens.iter().enumerate() {
-            println!("{}: {} {:?}", i, token.lexeme, token.token_type)
+            if (token.lexeme.len() > 0) {
+                println!("{}: {} {:?}", i, token.lexeme, token.token_type)
+            } else {
+                println!("{}: {:?}", i, token.token_type)
+            }
         }
     }
 
@@ -58,6 +62,12 @@ impl Scanner {
             self.start = self.current;
             self.scan_token()?;
         }
+        self.tokens.push(Token {
+            token_type: TokenType::EOF,
+            line: self.line,
+            lexeme: "".to_owned(),
+            litral: None,
+        });
         return Ok("".to_string());
     }
 
@@ -75,7 +85,7 @@ impl Scanner {
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
-        self.add_token_with_literal(TokenType::String, Some(Box::new(value.to_owned())));
+        self.add_token_with_literal(TokenType::String, Some(Object::String(String::from(value))));
         Ok(())
     }
 
@@ -89,7 +99,7 @@ impl Scanner {
             .get(value)
             .unwrap_or(&TokenType::Identifier)
             .clone();
-        self.add_token_with_literal(token_type, Some(Box::new(value.to_owned())));
+        self.add_token_with_literal(token_type, Some(Object::String(String::from(value))));
         Ok(())
     }
 
@@ -140,7 +150,13 @@ impl Scanner {
             }
         }
         let value = &self.source[self.start..self.current];
-        self.add_token_with_literal(TokenType::Number, Some(Box::new(value.to_owned())));
+        let value: i32 = match value.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                return Err(String::from("Failed to parse number"));
+            }
+        };
+        self.add_token_with_literal(TokenType::Number, Some(Object::Int(value)));
         Ok(())
     }
 
@@ -214,11 +230,7 @@ impl Scanner {
         return Ok(());
     }
 
-    fn add_token_with_literal(
-        self: &mut Self,
-        token_type: TokenType,
-        literal: Option<Box<dyn Any>>,
-    ) {
+    fn add_token_with_literal(self: &mut Self, token_type: TokenType, literal: Option<Object>) {
         let text = &self.source[self.start..self.current];
         self.tokens.push(Token {
             token_type,

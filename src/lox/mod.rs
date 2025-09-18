@@ -1,8 +1,11 @@
 use std::fs;
 
 use crate::lox::scanner::Scanner;
+mod expression;
+mod parser;
 mod scanner;
 mod token;
+mod types;
 
 pub struct Lox {}
 

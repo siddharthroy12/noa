@@ -1,4 +1,4 @@
-use std::any::Any;
+use crate::lox::types::Object;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TokenType {
@@ -55,7 +55,7 @@ pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
     pub line: usize,
-    pub litral: Option<Box<dyn Any>>,
+    pub litral: Option<Object>,
 }
 
 impl Token {
