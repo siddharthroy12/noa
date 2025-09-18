@@ -1,6 +1,7 @@
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
-    BinaryExpression, Expression, GroupExpression, LiteralExpression, UnaryExpression,
+    BinaryExpression, Expression, GroupExpression, LiteralExpression, TernaryExpression,
+    UnaryExpression,
 };
 use crate::lox::token::{Token, TokenType};
 
@@ -70,7 +71,27 @@ impl Parser {
     }
 
     fn parse_expression(self: &mut Self) -> Result<Expression, String> {
-        return self.parse_equality();
+        return self.parse_ternary();
+    }
+
+    fn parse_ternary(self: &mut Self) -> Result<Expression, String> {
+        let mut expr = self.parse_equality()?;
+
+        if self.match_token_types(&[TokenType::QuestionMark]) {
+            let mut if_true = self.parse_equality()?;
+            if self.match_token_types(&[TokenType::Colon]) {
+                let mut if_false = self.parse_equality()?;
+                expr = Expression::Ternary(TernaryExpression {
+                    check: Box::new(expr),
+                    if_true: Box::new(if_true),
+                    if_false: Box::new(if_false),
+                })
+            } else {
+                return Err("Expected : ".to_string());
+            }
+        }
+
+        return Ok(expr);
     }
 
     fn parse_equality(self: &mut Self) -> Result<Expression, String> {
@@ -225,7 +246,7 @@ impl Parser {
         self.advance();
 
         while !self.is_at_end() {
-            if (self.previous().token_type == TokenType::Semicolon) {
+            if self.previous().token_type == TokenType::Semicolon {
                 return;
             }
             match self.peek().token_type {

@@ -6,6 +6,14 @@ pub enum Expression {
     Group(GroupExpression),
     Literal(LiteralExpression),
     Unary(UnaryExpression),
+    Ternary(TernaryExpression),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TernaryExpression {
+    pub check: Box<Expression>,
+    pub if_true: Box<Expression>,
+    pub if_false: Box<Expression>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,6 +57,16 @@ impl Expression {
     }
     pub fn print(self: &Self) -> String {
         match self {
+            Expression::Ternary(ternary) => {
+                return self.parenthesize(
+                    &String::from("ternary"),
+                    &[
+                        ternary.check.clone(),
+                        ternary.if_false.clone(),
+                        ternary.if_true.clone(),
+                    ],
+                );
+            }
             Expression::Binary(binary) => {
                 return self.parenthesize(
                     &binary.operator.lexeme,

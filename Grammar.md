@@ -1,7 +1,8 @@
 # Grammar
 
 ```
-expression     -> equality ;
+expression     -> ternary ;
+ternary        -> comparison ("?" comparison ":" comparison)?
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;

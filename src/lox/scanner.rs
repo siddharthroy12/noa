@@ -1,6 +1,6 @@
-use std::{any::Any, collections::HashMap};
+use std::collections::HashMap;
 
-use crate::lox::{Lox, error::LoxError, token::TokenType, types::Object};
+use crate::lox::{error::LoxError, token::TokenType, types::Object};
 
 use super::token::Token;
 
@@ -46,7 +46,7 @@ impl Scanner {
     pub fn debug_print(self: &Self) {
         println!("---Tokens Start---");
         for (i, token) in self.tokens.iter().enumerate() {
-            if (token.lexeme.len() > 0) {
+            if token.lexeme.len() > 0 {
                 println!("{}: {} {:?}", i, token.lexeme, token.token_type)
             } else {
                 println!("{}: {:?}", i, token.token_type)
@@ -182,6 +182,8 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
             '*' => self.add_token(TokenType::Star),
+            '?' => self.add_token(TokenType::QuestionMark),
+            ':' => self.add_token(TokenType::Colon),
             '!' => {
                 if self.match_next_char('=') {
                     self.add_token(TokenType::BangEqual);
