@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Int(i32),
     String(String),

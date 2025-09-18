@@ -1,6 +1,7 @@
 use std::fs;
 
-use crate::lox::scanner::Scanner;
+use crate::lox::{parser::Parser, scanner::Scanner};
+mod error;
 mod expression;
 mod parser;
 mod scanner;
@@ -13,13 +14,24 @@ impl Lox {
     pub fn new() -> Self {
         return Lox {};
     }
-    pub fn run(self: &Self, src: String) -> Result<String, String> {
+    pub fn run(self: &mut Self, src: String) -> Result<(), String> {
         let mut scanner = Scanner::new(src);
-        scanner.scan_tokens()?;
+        if let Err(err) = scanner.scan_tokens() {
+            return Err(self.report(err.line, err.location, err.message));
+        }
         scanner.debug_print();
-        return Ok("".to_string());
+        let mut parser = Parser::new(scanner.tokens);
+        match parser.generateTree() {
+            Err(err) => {
+                return Err(self.report(err.line, err.location, err.message));
+            }
+            Ok(expression) => {
+                expression.print();
+            }
+        }
+        return Ok(());
     }
-    pub fn run_file(self: &Self, path: String) -> Result<String, String> {
+    pub fn run_file(self: &mut Self, path: String) -> Result<(), String> {
         match fs::read_to_string(path) {
             Ok(content) => {
                 return self.run(content);
@@ -27,7 +39,7 @@ impl Lox {
             Err(_) => return Err("Failed to read the file".to_string()),
         }
     }
-    pub fn report(self: &mut Self, line: i32, place: String, message: String) -> String {
-        return format!("[line \"{}\"] Error {} : {} ", line, place, message);
+    pub fn report(self: &mut Self, line: usize, place: String, message: String) -> String {
+        return format!("[line \"{}\"] Error{}: {}", line, place, message);
     }
 }

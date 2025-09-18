@@ -10,7 +10,7 @@ struct Args {
 }
 fn main() {
     let args = Args::parse();
-    let lox = Lox::new();
+    let mut lox = Lox::new();
     if args.script.is_empty() {
         loop {
             let mut line: String = String::new();

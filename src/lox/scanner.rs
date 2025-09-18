@@ -1,13 +1,13 @@
 use std::{any::Any, collections::HashMap};
 
-use crate::lox::{token::TokenType, types::Object};
+use crate::lox::{Lox, error::LoxError, token::TokenType, types::Object};
 
 use super::token::Token;
 
 pub struct Scanner {
     keywords: HashMap<String, TokenType>,
     source: String,
-    tokens: Vec<Token>,
+    pub tokens: Vec<Token>,
     start: usize,
     current: usize,
     line: usize,
@@ -57,10 +57,16 @@ impl Scanner {
         return self.current >= self.source.len();
     }
 
-    pub fn scan_tokens(self: &mut Self) -> Result<String, String> {
+    pub fn scan_tokens(self: &mut Self) -> Result<(), LoxError> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token()?;
+            if let Err(message) = self.scan_token() {
+                return Err(LoxError {
+                    line: self.line,
+                    location: format!(" at line {}", self.line),
+                    message: message,
+                });
+            }
         }
         self.tokens.push(Token {
             token_type: TokenType::EOF,
@@ -68,7 +74,7 @@ impl Scanner {
             lexeme: "".to_owned(),
             litral: None,
         });
-        return Ok("".to_string());
+        return Ok(());
     }
 
     fn scan_string_literal(self: &mut Self) -> Result<(), String> {

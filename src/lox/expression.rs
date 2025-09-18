@@ -1,31 +1,29 @@
-use std::any::Any;
-
 use crate::lox::{token::Token, types::Object};
 
-enum Expression {
+pub enum Expression {
     Binary(BinaryExpression),
     Group(GroupExpression),
     Literal(LiteralExpression),
     Unary(UnaryExpression),
 }
 
-struct BinaryExpression {
-    left: Box<Expression>,
-    operator: Token,
-    right: Box<Expression>,
+pub struct BinaryExpression {
+    pub left: Box<Expression>,
+    pub operator: Token,
+    pub right: Box<Expression>,
 }
 
-struct GroupExpression {
-    expression: Box<Expression>,
+pub struct GroupExpression {
+    pub expression: Box<Expression>,
 }
 
-struct LiteralExpression {
-    value: Option<Object>,
+pub struct LiteralExpression {
+    pub value: Option<Object>,
 }
 
-struct UnaryExpression {
-    operator: Token,
-    right: Box<Expression>,
+pub struct UnaryExpression {
+    pub operator: Token,
+    pub right: Box<Expression>,
 }
 
 impl Expression {

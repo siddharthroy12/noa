@@ -1,6 +1,6 @@
 use crate::lox::types::Object;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {
     // Single Character token
     LeftParen,
@@ -51,6 +51,7 @@ pub enum TokenType {
     EOF,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
