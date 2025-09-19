@@ -3,7 +3,9 @@ use crate::lox::expression::{
     BinaryExpression, Expression, GroupExpression, LiteralExpression, TernaryExpression,
     UnaryExpression,
 };
+use crate::lox::statement::{self, ExpressionStatement, PrintStatement, Statement};
 use crate::lox::token::{Token, TokenType};
+use crate::lox::types::Object;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -15,27 +17,64 @@ impl Parser {
         return Parser { tokens, current: 0 };
     }
 
-    pub fn generate_tree(self: &mut Self) -> Result<Expression, LoxError> {
-        match self.parse_expression() {
-            Ok(expression) => {
-                return Ok(expression);
+    pub fn parse(self: &mut Self) -> Result<Vec<Statement>, LoxError> {
+        let mut statements: Vec<Statement> = Vec::new();
+
+        loop {
+            if self.is_at_end() {
+                break;
             }
-            Err(err) => {
-                return Err(LoxError {
-                    line: self.peek().line,
-                    location: format!(
-                        " at '{}'",
-                        if self.peek().token_type == TokenType::EOF {
-                            "eof"
-                        } else {
-                            &self.peek().lexeme
-                        }
-                    ),
-                    message: err,
-                });
+            match self.parse_statement() {
+                Ok(statement) => {
+                    statements.push(statement);
+                }
+                Err(err) => {
+                    return Err(LoxError {
+                        line: self.peek().line,
+                        location: format!(
+                            " at '{}'",
+                            if self.peek().token_type == TokenType::EOF {
+                                "eof"
+                            } else {
+                                &self.peek().lexeme
+                            }
+                        ),
+                        message: err,
+                    });
+                }
             }
         }
+
+        return Ok(statements);
     }
+
+    pub fn parse_statement(self: &mut Self) -> Result<Statement, String> {
+        if self.match_token_types(&[TokenType::Print]) {
+            return self.parse_print_statement();
+        }
+
+        return self.parse_expression_statement();
+    }
+
+    pub fn parse_print_statement(self: &mut Self) -> Result<Statement, String> {
+        let expr = self.parse_expression()?;
+
+        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
+
+        return Ok(Statement::PrintStatement(PrintStatement {
+            expression: Box::new(expr),
+        }));
+    }
+
+    pub fn parse_expression_statement(self: &mut Self) -> Result<Statement, String> {
+        let expr = self.parse_expression()?;
+        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
+
+        return Ok(Statement::ExpressionStatement(ExpressionStatement {
+            expression: Box::new(expr),
+        }));
+    }
+
     fn is_at_end(self: &Self) -> bool {
         return self.peek().token_type == TokenType::EOF;
     }
@@ -218,7 +257,7 @@ impl Parser {
             }
         }
 
-        return Err(String::from("Unexpected token"));
+        return Err(format!("Unexpected token"));
     }
 
     fn parse_comma_operator(self: &mut Self) -> Result<Expression, String> {

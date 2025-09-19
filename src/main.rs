@@ -30,7 +30,8 @@ fn main() {
             }
         }
     } else {
-        if let Err(_) = lox.run_file(args.script) {
+        if let Err(err) = lox.run_file(args.script) {
+            eprintln!("{}", err);
             std::process::exit(1);
         }
     }

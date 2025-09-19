@@ -5,6 +5,7 @@ mod error;
 mod expression;
 mod parser;
 mod scanner;
+mod statement;
 mod token;
 mod types;
 
@@ -21,25 +22,28 @@ impl Lox {
         }
 
         let mut parser: Parser = Parser::new(scanner.tokens);
-        match parser.generate_tree() {
+        match parser.parse() {
             Err(err) => {
                 return Err(Self::report_lox_error(err));
             }
-            Ok(expression) => match expression.evaluate() {
-                Ok(value) => {
-                    println!("{}", value.to_string())
+            Ok(statements) => {
+                for statement in statements {
+                    match statement.execute() {
+                        Err(err) => {
+                            return Err(Self::report_lox_error(err));
+                        }
+                        _ => {}
+                    }
                 }
-                Err(err) => {
-                    return Err(Self::report_lox_error(err));
-                }
-            },
+            }
         }
         return Ok(());
     }
     pub fn run_file(self: &mut Self, path: String) -> Result<(), String> {
         match fs::read_to_string(path) {
             Ok(content) => {
-                return self.run(content);
+                self.run(content)?;
+                Ok(())
             }
             Err(_) => return Err("Failed to read the file".to_string()),
         }

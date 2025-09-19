@@ -154,7 +154,13 @@ impl Expression {
 
                         let n2 =
                             Self::get_number_object(right_value, binary_expression.operator.line)?;
-
+                        if (n2 == 0.0) {
+                            return Err(LoxError {
+                                line: binary_expression.operator.line,
+                                location: format!(" At '{}'", n2),
+                                message: format!("Cannot divide by zero"),
+                            });
+                        }
                         return Ok(Object::Number(n1 / n2));
                     }
 
