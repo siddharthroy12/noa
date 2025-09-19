@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::lox::{error::LoxError, token::TokenType, types::Object};
+use crate::lox::{
+    error::LoxError,
+    token::TokenType,
+    types::{Number, Object},
+};
 
 use super::token::Token;
 
@@ -74,7 +78,7 @@ impl Scanner {
             token_type: TokenType::EOF,
             line: self.line,
             lexeme: "".to_owned(),
-            litral: None,
+            litral: Object::Nil,
         });
         return Ok(());
     }
@@ -93,7 +97,7 @@ impl Scanner {
         }
         self.advance();
         let value = &self.source[self.start + 1..self.current - 1];
-        self.add_token_with_literal(TokenType::String, Some(Object::String(String::from(value))));
+        self.add_token_with_literal(TokenType::String, Object::String(String::from(value)));
         Ok(())
     }
 
@@ -107,7 +111,7 @@ impl Scanner {
             .get(value)
             .unwrap_or(&TokenType::Identifier)
             .clone();
-        self.add_token_with_literal(token_type, Some(Object::String(String::from(value))));
+        self.add_token_with_literal(token_type, Object::String(String::from(value)));
         Ok(())
     }
 
@@ -158,13 +162,13 @@ impl Scanner {
             }
         }
         let value = &self.source[self.start..self.current];
-        let value: f64 = match value.parse() {
+        let value: Number = match value.parse() {
             Ok(v) => v,
             Err(_) => {
                 return Err(String::from("Failed to parse number"));
             }
         };
-        self.add_token_with_literal(TokenType::Number, Some(Object::Number(value)));
+        self.add_token_with_literal(TokenType::Number, Object::Number(value));
         Ok(())
     }
 
@@ -240,7 +244,7 @@ impl Scanner {
         return Ok(());
     }
 
-    fn add_token_with_literal(self: &mut Self, token_type: TokenType, literal: Option<Object>) {
+    fn add_token_with_literal(self: &mut Self, token_type: TokenType, literal: Object) {
         let text = &self.source[self.start..self.current];
         self.tokens.push(Token {
             token_type,
@@ -251,7 +255,7 @@ impl Scanner {
     }
 
     fn add_token(self: &mut Self, token_type: TokenType) {
-        self.add_token_with_literal(token_type, None);
+        self.add_token_with_literal(token_type, Object::Nil);
     }
 
     fn advance(self: &mut Self) -> char {

@@ -179,17 +179,19 @@ impl Parser {
     fn parse_primary(self: &mut Self) -> Result<Expression, String> {
         if self.match_token_types(&[TokenType::False]) {
             return Ok(Expression::Literal(LiteralExpression {
-                value: Some(super::types::Object::Bool(false)),
+                value: (super::types::Object::Bool(false)),
             }));
         }
 
         if self.match_token_types(&[TokenType::True]) {
             return Ok(Expression::Literal(LiteralExpression {
-                value: Some(super::types::Object::Bool(true)),
+                value: (super::types::Object::Bool(true)),
             }));
         }
         if self.match_token_types(&[TokenType::Nil]) {
-            return Ok(Expression::Literal(LiteralExpression { value: None }));
+            return Ok(Expression::Literal(LiteralExpression {
+                value: super::types::Object::Nil,
+            }));
         }
 
         if self.match_token_types(&[TokenType::Number, TokenType::String]) {
@@ -216,7 +218,7 @@ impl Parser {
             }
         }
 
-        return Err(String::from("Unexpected character"));
+        return Err(String::from("Unexpected token"));
     }
 
     fn parse_comma_operator(self: &mut Self) -> Result<Expression, String> {
