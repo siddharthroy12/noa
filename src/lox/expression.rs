@@ -1,4 +1,3 @@
-
 use crate::lox::{
     error::LoxError,
     token::{Token, TokenType},
@@ -83,6 +82,10 @@ impl Expression {
                 let right_value = binary_expression.right.evaluate()?;
 
                 match binary_expression.operator.token_type {
+                    // Equality
+                    TokenType::Comma => {
+                        return Ok(right_value);
+                    }
                     // Equality
                     TokenType::EqualEqual => {
                         return Ok(Object::Bool(left_value.is_equal(&right_value)));
