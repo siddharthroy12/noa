@@ -78,9 +78,9 @@ impl Parser {
         let mut expr = self.parse_equality()?;
 
         if self.match_token_types(&[TokenType::QuestionMark]) {
-            let mut if_true = self.parse_equality()?;
+            let if_true = self.parse_equality()?;
             if self.match_token_types(&[TokenType::Colon]) {
-                let mut if_false = self.parse_equality()?;
+                let if_false = self.parse_equality()?;
                 expr = Expression::Ternary(TernaryExpression {
                     check: Box::new(expr),
                     if_true: Box::new(if_true),
