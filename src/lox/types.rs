@@ -2,7 +2,7 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
-    Int(i32),
+    Number(f64),
     String(String),
     Bool(bool),
 }
@@ -10,7 +10,7 @@ pub enum Object {
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Object::Int(i) => write!(f, "{}", i),
+            Object::Number(i) => write!(f, "{}", i),
             Object::String(s) => write!(f, "\"{}\"", s),
             Object::Bool(b) => write!(f, "{}", b),
         }

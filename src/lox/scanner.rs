@@ -158,13 +158,13 @@ impl Scanner {
             }
         }
         let value = &self.source[self.start..self.current];
-        let value: i32 = match value.parse() {
+        let value: f64 = match value.parse() {
             Ok(v) => v,
             Err(_) => {
                 return Err(String::from("Failed to parse number"));
             }
         };
-        self.add_token_with_literal(TokenType::Number, Some(Object::Int(value)));
+        self.add_token_with_literal(TokenType::Number, Some(Object::Number(value)));
         Ok(())
     }
 
