@@ -1,7 +1,7 @@
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
-    BinaryExpression, Expression, GroupExpression, LiteralExpression, TernaryExpression,
-    UnaryExpression,
+    AssginExpression, BinaryExpression, Expression, GroupExpression, LiteralExpression,
+    TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{ExpressionStatement, PrintStatement, Statement, VarStatement};
 use crate::lox::token::{Token, TokenType};
@@ -134,7 +134,26 @@ impl Parser {
     }
 
     fn parse_expression(self: &mut Self) -> Result<Expression, String> {
-        return self.parse_ternary();
+        return self.parse_assignment();
+    }
+
+    fn parse_assignment(self: &mut Self) -> Result<Expression, String> {
+        let expr = self.parse_ternary()?;
+
+        if self.match_token_types(&[TokenType::Equal]) {
+            let value = self.parse_assignment()?;
+
+            match expr {
+                Expression::Variable(variable) => {
+                    return Ok(Expression::Assign(AssginExpression {
+                        token: variable.token.clone(),
+                        expression: Box::new(value),
+                    }));
+                }
+                _ => return Err("Invalid assignment target".to_string()),
+            }
+        }
+        return Ok(expr);
     }
 
     fn parse_ternary(self: &mut Self) -> Result<Expression, String> {
@@ -260,6 +279,12 @@ impl Parser {
         if self.match_token_types(&[TokenType::Number, TokenType::String]) {
             return Ok(Expression::Literal(LiteralExpression {
                 value: self.previous().litral.clone(),
+            }));
+        }
+
+        if self.match_token_types(&[TokenType::Identifier]) {
+            return Ok(Expression::Variable(VariableExpression {
+                token: self.previous().clone(),
             }));
         }
 

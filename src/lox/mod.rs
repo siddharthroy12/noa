@@ -10,11 +10,15 @@ mod scanner;
 mod statement;
 mod token;
 mod types;
-pub struct Lox {}
+pub struct Lox {
+    interpreter: Interpreter,
+}
 
 impl Lox {
     pub fn new() -> Self {
-        return Lox {};
+        return Lox {
+            interpreter: Interpreter::new(),
+        };
     }
     pub fn run(self: &mut Self, src: String) -> Result<(), String> {
         let mut scanner = Scanner::new(src);
@@ -27,16 +31,12 @@ impl Lox {
             Err(err) => {
                 return Err(Self::report_lox_error(err));
             }
-            Ok(statements) => {
-                let mut interpreter = Interpreter::new();
-
-                match interpreter.execute(statements) {
-                    Err(err) => {
-                        return Err(Self::report_lox_error(err));
-                    }
-                    _ => {}
+            Ok(statements) => match self.interpreter.execute(statements) {
+                Err(err) => {
+                    return Err(Self::report_lox_error(err));
                 }
-            }
+                _ => {}
+            },
         }
         return Ok(());
     }

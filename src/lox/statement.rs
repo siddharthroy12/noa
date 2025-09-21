@@ -38,7 +38,7 @@ impl Statement {
                 if let Some(initializer) = &var_statement.initializer {
                     value = initializer.evaluate(environment)?;
                 }
-                environment.define(var_statement.identifier.lexeme.clone(), value);
+                environment.define(&var_statement.identifier, value);
                 Ok(())
             }
         }

@@ -14,15 +14,16 @@ print_statement -> "print" expression ";";
 ## Expression grammar
 
 ```
-expression     -> ternary ;
-ternary        -> comparison ("?" comparison ":" comparison)?
+expression     -> assignment;
+assignment     -> IDENTIFIER "=" (assignment | ternary);
+ternary        -> equality ("?" equality ":" equality)?;
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary
                | primary ;
-primary        -> NUMBER | STRING | "true" | "false" | "nil"
-               | "(" comma_operator ")" | IDENTIFIER;
+primary        -> NUMBER | STRING | "true" | "false" | "nil"| IDENTIFIER
+               | "(" comma_operator ")";
 comma_operator -> expression ("," expression)*;
 ```

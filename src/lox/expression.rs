@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::lox::{
     environment::{self, Environment},
     error::LoxError,
@@ -10,8 +12,21 @@ pub enum Expression {
     Binary(BinaryExpression),
     Group(GroupExpression),
     Literal(LiteralExpression),
+    Variable(VariableExpression),
     Unary(UnaryExpression),
     Ternary(TernaryExpression),
+    Assign(AssginExpression),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AssginExpression {
+    pub token: Token,
+    pub expression: Box<Expression>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct VariableExpression {
+    pub token: Token,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,7 +91,7 @@ impl Expression {
         }
     }
 
-    pub fn evaluate(self: &Self, environment: &Environment) -> Result<Object, LoxError> {
+    pub fn evaluate(self: &Self, environment: &mut Environment) -> Result<Object, LoxError> {
         match self {
             Expression::Binary(binary_expression) => {
                 let left_value = binary_expression.left.evaluate(environment)?;
@@ -209,6 +224,15 @@ impl Expression {
                     return Ok(ternary_expression.if_false.evaluate(environment)?);
                 }
             }
+            Expression::Assign(assgin_expression) => {
+                let value = assgin_expression.expression.evaluate(environment)?.clone();
+                environment.assign(&assgin_expression.token, value.clone())?;
+                return Ok(value);
+            }
+            Expression::Variable(variable_expression) => {
+                let value = environment.get(&variable_expression.token)?;
+                return Ok(value);
+            }
         }
     }
     pub fn print(self: &Self) -> String {
@@ -235,6 +259,15 @@ impl Expression {
             Expression::Literal(literal) => return literal.value.to_string(),
             Expression::Unary(unary) => {
                 return self.parenthesize(&unary.operator.lexeme, &[unary.right.clone()]);
+            }
+            Expression::Assign(assgin_expression) => {
+                return self.parenthesize(
+                    &format!("= {}", assgin_expression.token.lexeme),
+                    &[assgin_expression.expression.clone()],
+                );
+            }
+            Expression::Variable(variable_expression) => {
+                return format!("var {}", variable_expression.token.lexeme);
             }
         }
     }
