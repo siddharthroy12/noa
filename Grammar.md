@@ -1,5 +1,18 @@
 # Grammar
 
+## Statement grammar
+
+```
+program         -> declaration* EOF;
+declaration     -> var_decl | statement;
+var_decl        -> var IDENTIFIER ("=" statement)? ";";
+statement       -> expr_statement | print_statement;
+expr_statement  -> expression ";";
+print_statement -> "print" expression ";";
+```
+
+## Expression grammar
+
 ```
 expression     -> ternary ;
 ternary        -> comparison ("?" comparison ":" comparison)?
@@ -10,6 +23,6 @@ factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary
                | primary ;
 primary        -> NUMBER | STRING | "true" | "false" | "nil"
-               | "(" comma_operator ")" ;
-comma_operator -> expression ("," expression)*
+               | "(" comma_operator ")" | IDENTIFIER;
+comma_operator -> expression ("," expression)*;
 ```

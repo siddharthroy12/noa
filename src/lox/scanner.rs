@@ -43,7 +43,7 @@ impl Scanner {
             tokens: Vec::new(),
             start: 0,
             current: 0,
-            line: 0,
+            line: 1,
         };
     }
 
@@ -69,7 +69,7 @@ impl Scanner {
             if let Err(message) = self.scan_token() {
                 return Err(LoxError {
                     line: self.line,
-                    location: format!(" at line {}", self.line),
+                    location: self.peek().to_string(),
                     message: message,
                 });
             }

@@ -1,14 +1,15 @@
 use std::fs;
 
-use crate::lox::{error::LoxError, parser::Parser, scanner::Scanner};
+use crate::lox::{error::LoxError, interpreter::Interpreter, parser::Parser, scanner::Scanner};
+mod environment;
 mod error;
 mod expression;
+mod interpreter;
 mod parser;
 mod scanner;
 mod statement;
 mod token;
 mod types;
-
 pub struct Lox {}
 
 impl Lox {
@@ -27,13 +28,13 @@ impl Lox {
                 return Err(Self::report_lox_error(err));
             }
             Ok(statements) => {
-                for statement in statements {
-                    match statement.execute() {
-                        Err(err) => {
-                            return Err(Self::report_lox_error(err));
-                        }
-                        _ => {}
+                let mut interpreter = Interpreter::new();
+
+                match interpreter.execute(statements) {
+                    Err(err) => {
+                        return Err(Self::report_lox_error(err));
                     }
+                    _ => {}
                 }
             }
         }
@@ -50,7 +51,7 @@ impl Lox {
     }
     pub fn report_lox_error(error: LoxError) -> String {
         return format!(
-            "[line \"{}\"] Error{}: {}",
+            "[line \"{}\"] Error at {}: {}",
             error.line, error.location, error.message
         );
     }

@@ -3,9 +3,8 @@ use crate::lox::expression::{
     BinaryExpression, Expression, GroupExpression, LiteralExpression, TernaryExpression,
     UnaryExpression,
 };
-use crate::lox::statement::{self, ExpressionStatement, PrintStatement, Statement};
+use crate::lox::statement::{ExpressionStatement, PrintStatement, Statement, VarStatement};
 use crate::lox::token::{Token, TokenType};
-use crate::lox::types::Object;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -24,7 +23,7 @@ impl Parser {
             if self.is_at_end() {
                 break;
             }
-            match self.parse_statement() {
+            match self.parse_declaration() {
                 Ok(statement) => {
                     statements.push(statement);
                 }
@@ -32,7 +31,7 @@ impl Parser {
                     return Err(LoxError {
                         line: self.peek().line,
                         location: format!(
-                            " at '{}'",
+                            "{}",
                             if self.peek().token_type == TokenType::EOF {
                                 "eof"
                             } else {
@@ -46,6 +45,31 @@ impl Parser {
         }
 
         return Ok(statements);
+    }
+
+    pub fn parse_declaration(self: &mut Self) -> Result<Statement, String> {
+        if self.match_token_types(&[TokenType::Var]) {
+            return self.parse_var_declaration();
+        }
+
+        return self.parse_statement();
+    }
+
+    pub fn parse_var_declaration(self: &mut Self) -> Result<Statement, String> {
+        let identifier = self
+            .consume(TokenType::Identifier, "Invalid identifier".to_string())?
+            .clone();
+        let mut initializer: Option<Box<Expression>> = None;
+        if self.match_token_types(&[TokenType::Equal]) {
+            let expression = self.parse_expression()?;
+            initializer = Some(Box::new(expression));
+        }
+        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
+
+        return Ok(Statement::VarStatement(VarStatement {
+            initializer,
+            identifier: identifier,
+        }));
     }
 
     pub fn parse_statement(self: &mut Self) -> Result<Statement, String> {

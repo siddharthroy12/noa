@@ -1,4 +1,5 @@
 use crate::lox::{
+    environment::{self, Environment},
     error::LoxError,
     token::{Token, TokenType},
     types::{Number, Object},
@@ -68,18 +69,18 @@ impl Expression {
             _ => {
                 return Err(LoxError {
                     line: line,
-                    location: format!(" At '{}'", object.to_string()),
+                    location: object.to_string(),
                     message: format!("{} is not a valid number", object.to_string()),
                 });
             }
         }
     }
 
-    pub fn evaluate(self: &Self) -> Result<Object, LoxError> {
+    pub fn evaluate(self: &Self, environment: &Environment) -> Result<Object, LoxError> {
         match self {
             Expression::Binary(binary_expression) => {
-                let left_value = binary_expression.left.evaluate()?;
-                let right_value = binary_expression.right.evaluate()?;
+                let left_value = binary_expression.left.evaluate(environment)?;
+                let right_value = binary_expression.right.evaluate(environment)?;
 
                 match binary_expression.operator.token_type {
                     // Equality
@@ -157,7 +158,7 @@ impl Expression {
                         if (n2 == 0.0) {
                             return Err(LoxError {
                                 line: binary_expression.operator.line,
-                                location: format!(" At '{}'", n2),
+                                location: n2.to_string(),
                                 message: format!("Cannot divide by zero"),
                             });
                         }
@@ -167,18 +168,18 @@ impl Expression {
                     _ => {
                         return Err(LoxError {
                             line: binary_expression.operator.line,
-                            location: format!("At {}", binary_expression.operator.lexeme),
+                            location: binary_expression.operator.lexeme.clone(),
                             message: format!("Unknown binary operator"),
                         });
                     }
                 }
             }
             Expression::Group(group_expression) => {
-                return group_expression.expression.evaluate();
+                return group_expression.expression.evaluate(environment);
             }
             Expression::Literal(literal_expression) => return Ok(literal_expression.value.clone()),
             Expression::Unary(unary_expression) => {
-                let right_value = unary_expression.right.evaluate()?;
+                let right_value = unary_expression.right.evaluate(environment)?;
 
                 match unary_expression.operator.token_type {
                     TokenType::Bang => {
@@ -193,19 +194,19 @@ impl Expression {
                     _ => {
                         return Err(LoxError {
                             line: unary_expression.operator.line,
-                            location: format!("At {}", unary_expression.operator.lexeme),
+                            location: unary_expression.operator.lexeme.clone(),
                             message: format!("Unknown unary operator"),
                         });
                     }
                 }
             }
             Expression::Ternary(ternary_expression) => {
-                let check = ternary_expression.check.evaluate()?;
+                let check = ternary_expression.check.evaluate(environment)?;
 
                 if check.is_truthy() {
-                    return Ok(ternary_expression.if_true.evaluate()?);
+                    return Ok(ternary_expression.if_true.evaluate(environment)?);
                 } else {
-                    return Ok(ternary_expression.if_false.evaluate()?);
+                    return Ok(ternary_expression.if_false.evaluate(environment)?);
                 }
             }
         }
