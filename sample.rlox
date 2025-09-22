@@ -1,0 +1,44 @@
+// Variables
+var a = 10; var b = 10.20; var c = "Hello world"; var d = true; var e;
+
+// Arithmentic operators
+a = 10 + 20; a = 10 - 20; a = 10 / 20; a = 10 * 20;
+
+// String contate
+b = "Hello " + "World"; b = 10 + "Hello";
+
+// Print Statement
+print a;
+
+// Ternary operator
+a = 10 > 20 ? "10 is bigger than 20" : "10 is not bigger than 20";
+
+// Comparison operators
+print 10 > 10 == 10 > 10 != "A" <= "B";
+
+// Negation operators
+print -10;
+print !false;
+
+// Blocks
+{
+    var a = 20;
+    print a;
+
+    {
+        var c = 30;
+        print c;
+    }
+}
+
+// If statemnts
+if (true) {
+    print "yes";
+} else {
+    print "no";
+}
+
+// Logical operators
+if (true and true or false) {
+    print "what";
+}
