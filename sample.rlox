@@ -4,7 +4,7 @@ var a = 10; var b = 10.20; var c = "Hello world"; var d = true; var e;
 // Arithmentic operators
 a = 10 + 20; a = 10 - 20; a = 10 / 20; a = 10 * 20;
 
-// String contate
+// String concat
 b = "Hello " + "World"; b = 10 + "Hello";
 
 // Print Statement
