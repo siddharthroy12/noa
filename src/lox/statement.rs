@@ -1,8 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::lox::{
-    environment::Environment, error::LoxError, expression::Expression, token::Token,
-    types::Object,
+    environment::Environment, error::LoxError, expression::Expression, token::Token, types::Object,
 };
 
 pub enum Statement {
@@ -10,8 +9,14 @@ pub enum Statement {
     PrintStatement(PrintStatement),
     VarStatement(VarStatement),
     BlockStatement(BlockStatement),
+    IfStatement(IfStatement),
 }
 
+pub struct IfStatement {
+    pub check: Box<Expression>,
+    pub if_true: Box<Statement>,
+    pub if_false: Option<Box<Statement>>,
+}
 pub struct BlockStatement {
     pub statements: Vec<Statement>,
 }
@@ -78,6 +83,19 @@ impl Statement {
                 for statement in &block_statement.statements {
                     statement.execute(scope.clone())?;
                 }
+                Ok(())
+            }
+            Statement::IfStatement(if_statement) => {
+                let value = if_statement.check.evaluate(environment.clone())?;
+
+                if value.is_truthy() {
+                    return if_statement.if_true.execute(environment.clone());
+                } else {
+                    if let Some(if_false) = &if_statement.if_false {
+                        return if_false.execute(environment.clone());
+                    }
+                }
+
                 Ok(())
             }
         }

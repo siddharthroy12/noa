@@ -1,10 +1,10 @@
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
     AssginExpression, BinaryExpression, Expression, GroupExpression, LiteralExpression,
-    TernaryExpression, UnaryExpression, VariableExpression,
+    LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{
-    BlockStatement, ExpressionStatement, PrintStatement, Statement, VarStatement,
+    BlockStatement, ExpressionStatement, IfStatement, PrintStatement, Statement, VarStatement,
 };
 use crate::lox::token::{Token, TokenType};
 
@@ -83,7 +83,40 @@ impl Parser {
             return self.parse_block_statement();
         }
 
+        if self.match_token_types(&[TokenType::If]) {
+            return self.parse_if_statement();
+        }
+
         return self.parse_expression_statement();
+    }
+
+    pub fn parse_if_statement(self: &mut Self) -> Result<Statement, String> {
+        self.consume(TokenType::LeftParen, "Expect ( after if.".to_string())?;
+
+        let expression = self.parse_expression()?;
+
+        self.consume(
+            TokenType::RightParen,
+            "Expect ) after expression".to_string(),
+        )?;
+
+        let if_true = self.parse_statement()?;
+
+        if self.match_token_types(&[TokenType::Else]) {
+            let if_false = self.parse_statement()?;
+
+            return Ok(Statement::IfStatement(IfStatement {
+                check: Box::new(expression),
+                if_true: Box::new(if_true),
+                if_false: Some(Box::new(if_false)),
+            }));
+        }
+
+        return Ok(Statement::IfStatement(IfStatement {
+            check: Box::new(expression),
+            if_true: Box::new(if_true),
+            if_false: None,
+        }));
     }
 
     pub fn parse_block_statement(self: &mut Self) -> Result<Statement, String> {
@@ -158,7 +191,7 @@ impl Parser {
     }
 
     fn parse_assignment(self: &mut Self) -> Result<Expression, String> {
-        let expr = self.parse_ternary()?;
+        let expr = self.parse_or()?;
 
         if self.match_token_types(&[TokenType::Equal]) {
             let value = self.parse_assignment()?;
@@ -173,6 +206,38 @@ impl Parser {
                 _ => return Err("Invalid assignment target".to_string()),
             }
         }
+        return Ok(expr);
+    }
+
+    fn parse_or(self: &mut Self) -> Result<Expression, String> {
+        let mut expr = self.parse_and()?;
+
+        while self.match_token_types(&[TokenType::Or]) {
+            let operator = self.previous().clone();
+            let right = self.parse_and()?;
+            expr = Expression::Logical(LogicalExpression {
+                left: Box::new(expr),
+                operator: operator.clone(),
+                right: Box::new(right),
+            })
+        }
+
+        return Ok(expr);
+    }
+
+    fn parse_and(self: &mut Self) -> Result<Expression, String> {
+        let mut expr = self.parse_ternary()?;
+
+        while self.match_token_types(&[TokenType::And]) {
+            let operator = self.previous().clone();
+            let right = self.parse_ternary()?;
+            expr = Expression::Logical(LogicalExpression {
+                left: Box::new(expr),
+                operator: operator.clone(),
+                right: Box::new(right),
+            })
+        }
+
         return Ok(expr);
     }
 

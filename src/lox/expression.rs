@@ -16,6 +16,14 @@ pub enum Expression {
     Unary(UnaryExpression),
     Ternary(TernaryExpression),
     Assign(AssginExpression),
+    Logical(LogicalExpression),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LogicalExpression {
+    pub left: Box<Expression>,
+    pub operator: Token,
+    pub right: Box<Expression>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -84,7 +92,7 @@ impl Expression {
             _ => {
                 return Err(LoxError {
                     line: line,
-                    location: object.to_string(),
+                    location: format!("\"{}\"", object.to_string()),
                     message: format!("{} is not a valid number", object.to_string()),
                 });
             }
@@ -256,6 +264,38 @@ impl Expression {
                     });
                 }
             },
+            Expression::Logical(logical_expression) => {
+                let left = logical_expression.left.evaluate(environment.clone())?;
+
+                match logical_expression.operator.token_type {
+                    TokenType::And => {
+                        if left.is_truthy() {
+                            let right = logical_expression.left.evaluate(environment.clone())?;
+                            if right.is_truthy() {
+                                return Ok(Object::Bool(true));
+                            } else {
+                                return Ok(Object::Bool(false));
+                            }
+                        } else {
+                            return Ok(Object::Bool(false));
+                        }
+                    }
+                    TokenType::Or => {
+                        if left.is_truthy() {
+                            return Ok(Object::Bool(true));
+                        } else {
+                            let right = logical_expression.left.evaluate(environment.clone())?;
+                            if right.is_truthy() {
+                                return Ok(Object::Bool(true));
+                            } else {
+                                return Ok(Object::Bool(false));
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                return Ok(Object::Bool(false));
+            }
         }
     }
     pub fn print(self: &Self) -> String {
@@ -291,6 +331,15 @@ impl Expression {
             }
             Expression::Variable(variable_expression) => {
                 return format!("var {}", variable_expression.token.lexeme);
+            }
+            Expression::Logical(logical_expression) => {
+                return self.parenthesize(
+                    &format!("= {}", logical_expression.operator.lexeme),
+                    &[
+                        logical_expression.left.clone(),
+                        logical_expression.right.clone(),
+                    ],
+                );
             }
         }
     }
