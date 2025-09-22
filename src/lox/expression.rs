@@ -1,11 +1,7 @@
-use std::{
-    env,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use crate::lox::{
-    Lox,
-    environment::{self, Environment},
+    environment::Environment,
     error::LoxError,
     token::{Token, TokenType},
     types::{Number, Object},
@@ -174,7 +170,7 @@ impl Expression {
 
                         let n2 =
                             Self::get_number_object(right_value, binary_expression.operator.line)?;
-                        if (n2 == 0.0) {
+                        if n2 == 0.0 {
                             return Err(LoxError {
                                 line: binary_expression.operator.line,
                                 location: n2.to_string(),

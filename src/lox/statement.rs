@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::lox::{
-    Lox, environment::Environment, error::LoxError, expression::Expression, token::Token,
+    environment::Environment, error::LoxError, expression::Expression, token::Token,
     types::Object,
 };
 
