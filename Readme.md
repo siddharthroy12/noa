@@ -15,7 +15,7 @@ To learn how to use this langauge, refer to the [sample.rlox](./sample.rlox) fil
 
 `rlox [script]` will run the script.
 
-`rlox` will run the interpreter in RELP mode.
+`rlox` will run the interpreter in REPL mode.
 
 ## Grammar
 
