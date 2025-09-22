@@ -3,7 +3,9 @@ use crate::lox::expression::{
     AssginExpression, BinaryExpression, Expression, GroupExpression, LiteralExpression,
     TernaryExpression, UnaryExpression, VariableExpression,
 };
-use crate::lox::statement::{ExpressionStatement, PrintStatement, Statement, VarStatement};
+use crate::lox::statement::{
+    BlockStatement, ExpressionStatement, PrintStatement, Statement, VarStatement,
+};
 use crate::lox::token::{Token, TokenType};
 
 pub struct Parser {
@@ -77,7 +79,25 @@ impl Parser {
             return self.parse_print_statement();
         }
 
+        if self.match_token_types(&[TokenType::LeftBrace]) {
+            return self.parse_block_statement();
+        }
+
         return self.parse_expression_statement();
+    }
+
+    pub fn parse_block_statement(self: &mut Self) -> Result<Statement, String> {
+        let mut statements: Vec<Statement> = Vec::new();
+
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.parse_declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "Expect } after block.".to_owned())?;
+
+        return Ok(Statement::BlockStatement(BlockStatement {
+            statements: statements,
+        }));
     }
 
     pub fn parse_print_statement(self: &mut Self) -> Result<Statement, String> {

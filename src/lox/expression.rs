@@ -1,6 +1,10 @@
-use std::env;
+use std::{
+    env,
+    sync::{Arc, Mutex},
+};
 
 use crate::lox::{
+    Lox,
     environment::{self, Environment},
     error::LoxError,
     token::{Token, TokenType},
@@ -91,11 +95,11 @@ impl Expression {
         }
     }
 
-    pub fn evaluate(self: &Self, environment: &mut Environment) -> Result<Object, LoxError> {
+    pub fn evaluate(self: &Self, environment: Arc<Mutex<Environment>>) -> Result<Object, LoxError> {
         match self {
             Expression::Binary(binary_expression) => {
-                let left_value = binary_expression.left.evaluate(environment)?;
-                let right_value = binary_expression.right.evaluate(environment)?;
+                let left_value = binary_expression.left.evaluate(environment.clone())?;
+                let right_value = binary_expression.right.evaluate(environment.clone())?;
 
                 match binary_expression.operator.token_type {
                     // Equality
@@ -216,23 +220,46 @@ impl Expression {
                 }
             }
             Expression::Ternary(ternary_expression) => {
-                let check = ternary_expression.check.evaluate(environment)?;
+                let check = ternary_expression.check.evaluate(environment.clone())?;
 
                 if check.is_truthy() {
-                    return Ok(ternary_expression.if_true.evaluate(environment)?);
+                    return Ok(ternary_expression.if_true.evaluate(environment.clone())?);
                 } else {
-                    return Ok(ternary_expression.if_false.evaluate(environment)?);
+                    return Ok(ternary_expression.if_false.evaluate(environment.clone())?);
                 }
             }
             Expression::Assign(assgin_expression) => {
-                let value = assgin_expression.expression.evaluate(environment)?.clone();
-                environment.assign(&assgin_expression.token, value.clone())?;
+                let value = assgin_expression
+                    .expression
+                    .evaluate(environment.clone())?
+                    .clone();
+                match environment.lock() {
+                    Ok(mut mutex) => {
+                        mutex.assign(&assgin_expression.token, value.clone())?;
+                    }
+                    Err(_) => {
+                        return Err(LoxError {
+                            line: assgin_expression.token.line,
+                            location: assgin_expression.token.lexeme.clone(),
+                            message: format!("Failed to get local scope memory"),
+                        });
+                    }
+                }
                 return Ok(value);
             }
-            Expression::Variable(variable_expression) => {
-                let value = environment.get(&variable_expression.token)?;
-                return Ok(value);
-            }
+            Expression::Variable(variable_expression) => match environment.lock() {
+                Ok(mut mutex) => {
+                    let value = mutex.get(&variable_expression.token)?;
+                    return Ok(value);
+                }
+                Err(_) => {
+                    return Err(LoxError {
+                        line: variable_expression.token.line,
+                        location: variable_expression.token.lexeme.clone(),
+                        message: format!("Failed to get local scope memory"),
+                    });
+                }
+            },
         }
     }
     pub fn print(self: &Self) -> String {

@@ -6,7 +6,8 @@
 program         -> declaration* EOF;
 declaration     -> var_decl | statement;
 var_decl        -> var IDENTIFIER ("=" statement)? ";";
-statement       -> expr_statement | print_statement;
+statement       -> expr_statement | print_statement | block;
+block           -> "{" declaration* "}"
 expr_statement  -> expression ";";
 print_statement -> "print" expression ";";
 ```

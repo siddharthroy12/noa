@@ -1,13 +1,20 @@
+use std::sync::{Arc, Mutex};
+
 use crate::lox::{
-    environment::Environment, error::LoxError, expression::Expression, token::Token, types::Object,
+    Lox, environment::Environment, error::LoxError, expression::Expression, token::Token,
+    types::Object,
 };
 
 pub enum Statement {
     ExpressionStatement(ExpressionStatement),
     PrintStatement(PrintStatement),
     VarStatement(VarStatement),
+    BlockStatement(BlockStatement),
 }
 
+pub struct BlockStatement {
+    pub statements: Vec<Statement>,
+}
 pub struct ExpressionStatement {
     pub expression: Box<Expression>,
 }
@@ -22,7 +29,7 @@ pub struct VarStatement {
 }
 
 impl Statement {
-    pub fn execute(self: &Self, environment: &mut Environment) -> Result<(), LoxError> {
+    pub fn execute(self: &Self, environment: Arc<Mutex<Environment>>) -> Result<(), LoxError> {
         match self {
             Statement::ExpressionStatement(expression_statement) => {
                 expression_statement.expression.evaluate(environment)?;
@@ -36,9 +43,41 @@ impl Statement {
             Statement::VarStatement(var_statement) => {
                 let mut value = Object::Nil;
                 if let Some(initializer) = &var_statement.initializer {
-                    value = initializer.evaluate(environment)?;
+                    value = initializer.evaluate(environment.clone())?;
                 }
-                environment.define(&var_statement.identifier, value);
+                match environment.lock() {
+                    Ok(mut mutex) => {
+                        mutex.define(&var_statement.identifier, value);
+                    }
+                    Err(_) => {
+                        return Err(LoxError {
+                            line: var_statement.identifier.line,
+                            location: var_statement.identifier.lexeme.clone(),
+                            message: format!(
+                                "Failed to get local scope memory to assign the value"
+                            ),
+                        });
+                    }
+                }
+                Ok(())
+            }
+            Statement::BlockStatement(block_statement) => {
+                let scope = Arc::new(Mutex::new(Environment::new()));
+                match scope.lock() {
+                    Ok(mut mutex) => {
+                        mutex.enclose(environment);
+                    }
+                    Err(_) => {
+                        return Err(LoxError {
+                            line: 0,
+                            location: format!("N/A"),
+                            message: format!("Unable to create local scope for block"),
+                        });
+                    }
+                }
+                for statement in &block_statement.statements {
+                    statement.execute(scope.clone())?;
+                }
                 Ok(())
             }
         }

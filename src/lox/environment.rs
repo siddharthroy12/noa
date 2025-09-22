@@ -25,11 +25,21 @@ impl Environment {
     }
     pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), LoxError> {
         if !self.values.contains_key(&token.lexeme) {
-            return Err(LoxError {
-                line: token.line,
-                location: token.lexeme.clone(),
-                message: format!("Unkown variable"),
-            });
+            match &self.enclosing {
+                Some(enclosing) => match enclosing.lock() {
+                    Ok(mut enclosing) => return enclosing.assign(token, value),
+                    Err(_) => {
+                        panic!("Failed to get enclosing environment")
+                    }
+                },
+                None => {
+                    return Err(LoxError {
+                        line: token.line,
+                        location: token.lexeme.clone(),
+                        message: format!("Unkown variable"),
+                    });
+                }
+            }
         }
         self.values.insert(token.lexeme.clone(), value);
         Ok(())
