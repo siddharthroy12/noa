@@ -5,6 +5,7 @@ use crate::lox::expression::{
 };
 use crate::lox::statement::{
     BlockStatement, ExpressionStatement, IfStatement, PrintStatement, Statement, VarStatement,
+    WhileStatement,
 };
 use crate::lox::token::{Token, TokenType};
 
@@ -68,7 +69,7 @@ impl Parser {
         }
         self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
 
-        return Ok(Statement::VarStatement(VarStatement {
+        return Ok(Statement::Var(VarStatement {
             initializer,
             identifier: identifier,
         }));
@@ -85,6 +86,10 @@ impl Parser {
 
         if self.match_token_types(&[TokenType::If]) {
             return self.parse_if_statement();
+        }
+
+        if self.match_token_types(&[TokenType::While]) {
+            return self.parse_while_statement();
         }
 
         return self.parse_expression_statement();
@@ -105,17 +110,35 @@ impl Parser {
         if self.match_token_types(&[TokenType::Else]) {
             let if_false = self.parse_statement()?;
 
-            return Ok(Statement::IfStatement(IfStatement {
+            return Ok(Statement::If(IfStatement {
                 check: Box::new(expression),
                 if_true: Box::new(if_true),
                 if_false: Some(Box::new(if_false)),
             }));
         }
 
-        return Ok(Statement::IfStatement(IfStatement {
+        return Ok(Statement::If(IfStatement {
             check: Box::new(expression),
             if_true: Box::new(if_true),
             if_false: None,
+        }));
+    }
+
+    pub fn parse_while_statement(self: &mut Self) -> Result<Statement, String> {
+        self.consume(TokenType::LeftParen, "Expect ( after while.".to_string())?;
+
+        let expression = self.parse_expression()?;
+
+        self.consume(
+            TokenType::RightParen,
+            "Expect ) after expression".to_string(),
+        )?;
+
+        let if_true = self.parse_statement()?;
+
+        return Ok(Statement::While(WhileStatement {
+            check: Box::new(expression),
+            if_true: Box::new(if_true),
         }));
     }
 
@@ -128,7 +151,7 @@ impl Parser {
 
         self.consume(TokenType::RightBrace, "Expect } after block.".to_owned())?;
 
-        return Ok(Statement::BlockStatement(BlockStatement {
+        return Ok(Statement::Block(BlockStatement {
             statements: statements,
         }));
     }
@@ -138,7 +161,7 @@ impl Parser {
 
         self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
 
-        return Ok(Statement::PrintStatement(PrintStatement {
+        return Ok(Statement::Print(PrintStatement {
             expression: Box::new(expr),
         }));
     }
@@ -147,7 +170,7 @@ impl Parser {
         let expr = self.parse_expression()?;
         self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
 
-        return Ok(Statement::ExpressionStatement(ExpressionStatement {
+        return Ok(Statement::Expression(ExpressionStatement {
             expression: Box::new(expr),
         }));
     }

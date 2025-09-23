@@ -5,13 +5,17 @@ use crate::lox::{
 };
 
 pub enum Statement {
-    ExpressionStatement(ExpressionStatement),
-    PrintStatement(PrintStatement),
-    VarStatement(VarStatement),
-    BlockStatement(BlockStatement),
-    IfStatement(IfStatement),
+    Expression(ExpressionStatement),
+    Print(PrintStatement),
+    Var(VarStatement),
+    Block(BlockStatement),
+    If(IfStatement),
+    While(WhileStatement),
 }
-
+pub struct WhileStatement {
+    pub check: Box<Expression>,
+    pub if_true: Box<Statement>,
+}
 pub struct IfStatement {
     pub check: Box<Expression>,
     pub if_true: Box<Statement>,
@@ -36,16 +40,16 @@ pub struct VarStatement {
 impl Statement {
     pub fn execute(self: &Self, environment: Arc<Mutex<Environment>>) -> Result<(), LoxError> {
         match self {
-            Statement::ExpressionStatement(expression_statement) => {
+            Statement::Expression(expression_statement) => {
                 expression_statement.expression.evaluate(environment)?;
                 Ok(())
             }
-            Statement::PrintStatement(print_statement) => {
+            Statement::Print(print_statement) => {
                 let value = print_statement.expression.evaluate(environment)?;
                 println!("{}", value.to_string());
                 Ok(())
             }
-            Statement::VarStatement(var_statement) => {
+            Statement::Var(var_statement) => {
                 let mut value = Object::Nil;
                 if let Some(initializer) = &var_statement.initializer {
                     value = initializer.evaluate(environment.clone())?;
@@ -66,7 +70,7 @@ impl Statement {
                 }
                 Ok(())
             }
-            Statement::BlockStatement(block_statement) => {
+            Statement::Block(block_statement) => {
                 let scope = Arc::new(Mutex::new(Environment::new()));
                 match scope.lock() {
                     Ok(mut mutex) => {
@@ -85,7 +89,7 @@ impl Statement {
                 }
                 Ok(())
             }
-            Statement::IfStatement(if_statement) => {
+            Statement::If(if_statement) => {
                 let value = if_statement.check.evaluate(environment.clone())?;
 
                 if value.is_truthy() {
@@ -97,6 +101,16 @@ impl Statement {
                 }
 
                 Ok(())
+            }
+            Statement::While(while_statement) => {
+                let mut value: Object = while_statement.check.evaluate(environment.clone())?;
+
+                while value.is_truthy() {
+                    while_statement.if_true.execute(environment.clone())?;
+                    value = while_statement.check.evaluate(environment.clone())?;
+                }
+
+                return Ok(());
             }
         }
     }

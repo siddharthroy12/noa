@@ -51,7 +51,7 @@ impl Lox {
     }
     pub fn report_lox_error(error: LoxError) -> String {
         return format!(
-            "[line \"{}\"] Error at {}: {}",
+            "[line \"{}\"] Error at '{}': {}",
             error.line, error.location, error.message
         );
     }
