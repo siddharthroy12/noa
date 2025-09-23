@@ -8,6 +8,7 @@ use crate::lox::statement::{
     WhileStatement,
 };
 use crate::lox::token::{Token, TokenType};
+use crate::lox::types::Object;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -91,6 +92,9 @@ impl Parser {
         if self.match_token_types(&[TokenType::While]) {
             return self.parse_while_statement();
         }
+        if self.match_token_types(&[TokenType::For]) {
+            return self.parse_for_statement();
+        }
 
         return self.parse_expression_statement();
     }
@@ -140,6 +144,69 @@ impl Parser {
             check: Box::new(expression),
             if_true: Box::new(if_true),
         }));
+    }
+
+    pub fn parse_for_statement(self: &mut Self) -> Result<Statement, String> {
+        self.consume(TokenType::LeftParen, "Expect ( after for.".to_string())?;
+
+        let mut initializer: Statement = Statement::Expression(ExpressionStatement {
+            expression: Box::new(Expression::Literal(LiteralExpression {
+                value: Object::Nil,
+            })),
+        });
+        let mut check: Expression = Expression::Literal(LiteralExpression {
+            value: Object::Bool(true),
+        });
+
+        let mut post_loop: Expression = Expression::Literal(LiteralExpression {
+            value: Object::Bool(true),
+        });
+
+        // First part
+        if !self.match_token_types(&[TokenType::Semicolon]) {
+            if self.match_token_types(&[TokenType::Var]) {
+                initializer = self.parse_var_declaration()?;
+            } else {
+                initializer = self.parse_expression_statement()?;
+            }
+        }
+
+        // Second part
+        if !self.match_token_types(&[TokenType::Semicolon]) {
+            check = self.parse_expression()?;
+            self.consume(
+                TokenType::Semicolon,
+                "Expect ; after expression".to_string(),
+            )?;
+        }
+
+        // Second part
+        if !self.match_token_types(&[TokenType::RightParen]) {
+            post_loop = self.parse_expression()?;
+            self.consume(
+                TokenType::RightParen,
+                "Expect ) after expression".to_string(),
+            )?;
+        }
+
+        let if_true = self.parse_statement()?;
+
+        return Ok((Statement::Block(BlockStatement {
+            statements: vec![
+                initializer,
+                Statement::While(WhileStatement {
+                    check: Box::new(check),
+                    if_true: Box::new(Statement::Block(BlockStatement {
+                        statements: vec![
+                            if_true,
+                            Statement::Expression(ExpressionStatement {
+                                expression: Box::new(post_loop),
+                            }),
+                        ],
+                    })),
+                }),
+            ],
+        })));
     }
 
     pub fn parse_block_statement(self: &mut Self) -> Result<Statement, String> {

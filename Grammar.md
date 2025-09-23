@@ -6,8 +6,9 @@
 program         -> declaration* EOF;
 declaration     -> var_decl | statement;
 var_decl        -> var IDENTIFIER ("=" statement)? ";";
-statement       -> expr_statement | print_statement | block | if | while;
+statement       -> expr_statement | print_statement | block | if | while | for;
 while           -> "while" "(" expression ")" statement;
+for             -> "for" "(" (var_decl | expr_statement | ";") expression? ";" expression? ")" statement;
 if              -> "if" "(" expression ")" statement ("else" statement)?;
 block           -> "{" declaration* "}"
 expr_statement  -> expression ";";
