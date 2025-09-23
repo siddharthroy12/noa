@@ -270,9 +270,9 @@ impl Expression {
                 match logical_expression.operator.token_type {
                     TokenType::And => {
                         if left.is_truthy() {
-                            let right = logical_expression.left.evaluate(environment.clone())?;
+                            let right = logical_expression.right.evaluate(environment.clone())?;
                             if right.is_truthy() {
-                                return Ok(Object::Bool(true));
+                                return Ok(right);
                             } else {
                                 return Ok(Object::Bool(false));
                             }
@@ -282,11 +282,11 @@ impl Expression {
                     }
                     TokenType::Or => {
                         if left.is_truthy() {
-                            return Ok(Object::Bool(true));
+                            return Ok(left);
                         } else {
-                            let right = logical_expression.left.evaluate(environment.clone())?;
+                            let right = logical_expression.right.evaluate(environment.clone())?;
                             if right.is_truthy() {
-                                return Ok(Object::Bool(true));
+                                return Ok(right);
                             } else {
                                 return Ok(Object::Bool(false));
                             }

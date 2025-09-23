@@ -42,3 +42,7 @@ if (true) {
 if (true and true or false) {
     print "what";
 }
+
+// More use case of logical operators
+print false or "Hello"; // Returns the truthy operand
+print true and "Hello"; // Returns the right operand if both operands are truthy
