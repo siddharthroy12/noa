@@ -29,7 +29,6 @@ impl Scanner {
         keywords.insert(String::from("if"), TokenType::If);
         keywords.insert(String::from("nil"), TokenType::Nil);
         keywords.insert(String::from("or"), TokenType::Or);
-        keywords.insert(String::from("print"), TokenType::Print);
         keywords.insert(String::from("return"), TokenType::Return);
         keywords.insert(String::from("super"), TokenType::Super);
         keywords.insert(String::from("this"), TokenType::This);

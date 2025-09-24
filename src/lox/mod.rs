@@ -1,10 +1,18 @@
 use std::fs;
 
-use crate::lox::{error::LoxError, interpreter::Interpreter, parser::Parser, scanner::Scanner};
+use crate::lox::{
+    error::LoxError,
+    interpreter::Interpreter,
+    library::print,
+    parser::Parser,
+    scanner::Scanner,
+    types::{Function, Object},
+};
 mod environment;
 mod error;
 mod expression;
 mod interpreter;
+mod library;
 mod parser;
 mod scanner;
 mod statement;
@@ -19,6 +27,18 @@ impl Lox {
         return Lox {
             interpreter: Interpreter::new(),
         };
+    }
+    pub fn load_libray(self: &mut Self) {
+        self.setup_global_object(
+            "print".to_owned(),
+            Object::Function(Box::new(Function {
+                body: None,
+                callback: Some(print),
+            })),
+        );
+    }
+    pub fn setup_global_object(self: &mut Self, identifier: String, object: Object) {
+        self.interpreter.setup_global_object(identifier, object);
     }
     pub fn run(self: &mut Self, src: String) -> Result<(), String> {
         let mut scanner = Scanner::new(src);

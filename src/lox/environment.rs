@@ -12,16 +12,17 @@ pub struct Environment {
 
 impl Environment {
     pub fn new() -> Self {
+        let values: HashMap<String, Object> = HashMap::new();
         return Environment {
-            values: HashMap::new(),
+            values: values,
             enclosing: None,
         };
     }
     pub fn enclose(self: &mut Self, enclosing: Arc<Mutex<Environment>>) {
         self.enclosing = Some(enclosing);
     }
-    pub fn define(self: &mut Self, token: &Token, value: Object) {
-        self.values.insert(token.lexeme.clone(), value);
+    pub fn define(self: &mut Self, identifier: String, value: Object) {
+        self.values.insert(identifier, value);
     }
     pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), LoxError> {
         if !self.values.contains_key(&token.lexeme) {

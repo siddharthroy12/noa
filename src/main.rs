@@ -11,6 +11,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let mut lox = Lox::new();
+    lox.load_libray();
     if args.script.is_empty() {
         loop {
             let mut line: String = String::new();

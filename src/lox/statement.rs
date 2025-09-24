@@ -4,33 +4,37 @@ use crate::lox::{
     environment::Environment, error::LoxError, expression::Expression, token::Token, types::Object,
 };
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Expression(ExpressionStatement),
-    Print(PrintStatement),
     Var(VarStatement),
     Block(BlockStatement),
     If(IfStatement),
     While(WhileStatement),
 }
+#[derive(Debug, Clone, PartialEq)]
 pub struct WhileStatement {
     pub check: Box<Expression>,
     pub if_true: Box<Statement>,
 }
+#[derive(Debug, Clone, PartialEq)]
+
 pub struct IfStatement {
     pub check: Box<Expression>,
     pub if_true: Box<Statement>,
     pub if_false: Option<Box<Statement>>,
 }
+#[derive(Debug, Clone, PartialEq)]
+
 pub struct BlockStatement {
     pub statements: Vec<Statement>,
 }
+#[derive(Debug, Clone, PartialEq)]
+
 pub struct ExpressionStatement {
     pub expression: Box<Expression>,
 }
-
-pub struct PrintStatement {
-    pub expression: Box<Expression>,
-}
+#[derive(Debug, Clone, PartialEq)]
 
 pub struct VarStatement {
     pub initializer: Option<Box<Expression>>,
@@ -44,11 +48,6 @@ impl Statement {
                 expression_statement.expression.evaluate(environment)?;
                 Ok(())
             }
-            Statement::Print(print_statement) => {
-                let value = print_statement.expression.evaluate(environment)?;
-                println!("{}", value.to_string());
-                Ok(())
-            }
             Statement::Var(var_statement) => {
                 let mut value = Object::Nil;
                 if let Some(initializer) = &var_statement.initializer {
@@ -56,7 +55,7 @@ impl Statement {
                 }
                 match environment.lock() {
                     Ok(mut mutex) => {
-                        mutex.define(&var_statement.identifier, value);
+                        mutex.define(var_statement.identifier.lexeme.clone(), value);
                     }
                     Err(_) => {
                         return Err(LoxError {

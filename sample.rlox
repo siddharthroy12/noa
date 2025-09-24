@@ -8,55 +8,58 @@ a = 10 + 20; a = 10 - 20; a = 10 / 20; a = 10 * 20;
 b = "Hello " + "World"; b = 10 + "Hello";
 
 // Print Statement
-print a;
+print(a);
 
 // Ternary operator
 a = 10 > 20 ? "10 is bigger than 20" : "10 is not bigger than 20";
 
 // Comparison operators
-print 10 > 10 == 10 > 10 != "A" <= "B";
+print(10 > 10 == 10 > 10 != "A" <= "B");
 
 // Negation operators
-print -10;
-print !false;
+print(-10);
+print(!false);
 
 // Blocks
 {
     var a = 20;
-    print a;
+    print(a);
 
     {
         var c = 30;
-        print c;
+        print(c);
     }
 }
 
 // If statemnts
 if (true) {
-    print "yes";
+    print("yes");
 } else {
-    print "no";
+    print("no");
 }
 
 // Logical operators
 if (true and true or false) {
-    print "what";
+    print("what");
 }
 
 // More use case of logical operators
-print false or "Hello"; // Returns the truthy operand
-print true and "Hello"; // Returns the right operand if both operands are truthy
+print(false or "Hello"); // Returns the truthy operand
+print(true and "Hello"); // Returns the right operand if both operands are truthy
 
 // Loops
 {
     var i = 0;
     while (i < 10) {
-        print i;
+        print(i);
         i = i + 1;
     }
 }
 
-print "for loop";
+print("for loop");
 for (var i = 0; i < 10 ; i = i + 1) {
-    print i;
+    print(i);
 }
+
+// Functions
+print("Print function");

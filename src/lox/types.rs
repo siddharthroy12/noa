@@ -1,12 +1,55 @@
-use std::fmt;
+use std::{
+    fmt,
+    sync::{Arc, Mutex},
+};
+
+use crate::lox::{environment::Environment, error::LoxError, statement::BlockStatement};
 
 pub type Number = f64;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function {
+    pub body: Option<BlockStatement>,
+    pub callback: Option<
+        fn(
+            arguments: &Vec<Object>,
+            environment: Arc<Mutex<Environment>>,
+        ) -> Result<Object, LoxError>,
+    >,
+}
+
+impl Function {
+    pub fn call(
+        self: &Self,
+        arguments: Vec<Object>,
+        environment: Arc<Mutex<Environment>>,
+    ) -> Result<Object, LoxError> {
+        match self.callback {
+            Some(callback) => {
+                return callback(&arguments, environment);
+            }
+            None => {}
+        }
+
+        match &self.body {
+            Some(block) => {
+                for statement in &block.statements {
+                    statement.execute(environment.clone())?;
+                }
+            }
+            None => {}
+        }
+
+        return Ok(Object::Nil);
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Number(Number),
     String(String),
     Bool(bool),
+    Function(Box<Function>),
     Nil,
 }
 
@@ -23,6 +66,7 @@ impl Object {
             Object::Nil => {
                 return false;
             }
+            Object::Function(_) => return true,
         }
     }
     pub fn is_equal(self: &Self, comp: &Object) -> bool {
@@ -144,6 +188,7 @@ impl fmt::Display for Object {
             Object::String(s) => write!(f, "{}", s),
             Object::Bool(b) => write!(f, "{}", b),
             Object::Nil => write!(f, "nil"),
+            Object::Function(_) => write!(f, "[Function]"),
         }
     }
 }

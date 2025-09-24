@@ -28,7 +28,9 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary
-               | primary ;
+               | call ;
+call           -> primary ("(" arguments? ")")*;
+arguments      -> expression ("," expression)*;
 primary        -> NUMBER | STRING | "true" | "false" | "nil"| IDENTIFIER
                | "(" comma_operator ")";
 comma_operator -> expression ("," expression)*;

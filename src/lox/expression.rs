@@ -17,6 +17,14 @@ pub enum Expression {
     Ternary(TernaryExpression),
     Assign(AssginExpression),
     Logical(LogicalExpression),
+    Call(CallExpression),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CallExpression {
+    pub callee: Box<Expression>,
+    pub paren: Token,
+    pub arguments: Vec<Expression>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -296,6 +304,26 @@ impl Expression {
                 }
                 return Ok(Object::Bool(false));
             }
+            Expression::Call(call_expression) => {
+                let callee = call_expression.callee.evaluate(environment.clone())?;
+                let mut arguments: Vec<Object> = Vec::new();
+
+                match callee {
+                    Object::Function(function) => {
+                        for arg in &call_expression.arguments {
+                            arguments.push(arg.evaluate(environment.clone())?);
+                        }
+                        return function.call(arguments, environment.clone());
+                    }
+                    _ => {
+                        return Err(LoxError {
+                            line: call_expression.paren.line,
+                            location: "(".to_owned(),
+                            message: format!("{} is not callable", callee.to_string()),
+                        });
+                    }
+                }
+            }
         }
     }
     pub fn print(self: &Self) -> String {
@@ -340,6 +368,14 @@ impl Expression {
                         logical_expression.right.clone(),
                     ],
                 );
+            }
+            Expression::Call(call_expression) => {
+                let expressions: Vec<Box<Expression>> = call_expression
+                    .arguments
+                    .iter()
+                    .map(|arg| Box::new(arg.clone()))
+                    .collect();
+                return self.parenthesize(&format!("call"), &expressions);
             }
         }
     }

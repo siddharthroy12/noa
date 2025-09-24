@@ -1,11 +1,10 @@
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
-    AssginExpression, BinaryExpression, Expression, GroupExpression, LiteralExpression,
-    LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
+    AssginExpression, BinaryExpression, CallExpression, Expression, GroupExpression,
+    LiteralExpression, LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{
-    BlockStatement, ExpressionStatement, IfStatement, PrintStatement, Statement, VarStatement,
-    WhileStatement,
+    BlockStatement, ExpressionStatement, IfStatement, Statement, VarStatement, WhileStatement,
 };
 use crate::lox::token::{Token, TokenType};
 use crate::lox::types::Object;
@@ -77,10 +76,6 @@ impl Parser {
     }
 
     pub fn parse_statement(self: &mut Self) -> Result<Statement, String> {
-        if self.match_token_types(&[TokenType::Print]) {
-            return self.parse_print_statement();
-        }
-
         if self.match_token_types(&[TokenType::LeftBrace]) {
             return self.parse_block_statement();
         }
@@ -180,7 +175,7 @@ impl Parser {
             )?;
         }
 
-        // Second part
+        // Third part
         if !self.match_token_types(&[TokenType::RightParen]) {
             post_loop = self.parse_expression()?;
             self.consume(
@@ -191,7 +186,7 @@ impl Parser {
 
         let if_true = self.parse_statement()?;
 
-        return Ok((Statement::Block(BlockStatement {
+        return Ok(Statement::Block(BlockStatement {
             statements: vec![
                 initializer,
                 Statement::While(WhileStatement {
@@ -206,7 +201,7 @@ impl Parser {
                     })),
                 }),
             ],
-        })));
+        }));
     }
 
     pub fn parse_block_statement(self: &mut Self) -> Result<Statement, String> {
@@ -220,16 +215,6 @@ impl Parser {
 
         return Ok(Statement::Block(BlockStatement {
             statements: statements,
-        }));
-    }
-
-    pub fn parse_print_statement(self: &mut Self) -> Result<Statement, String> {
-        let expr = self.parse_expression()?;
-
-        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
-
-        return Ok(Statement::Print(PrintStatement {
-            expression: Box::new(expr),
         }));
     }
 
@@ -423,14 +408,55 @@ impl Parser {
     fn parse_unary(self: &mut Self) -> Result<Expression, String> {
         if self.match_token_types(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
-            let right = self.parse_unary()?;
+            let right = self.parse_call()?;
             return Ok(Expression::Unary(UnaryExpression {
                 operator: operator,
                 right: Box::new(right),
             }));
         }
 
-        return self.parse_primary();
+        return self.parse_call();
+    }
+
+    fn parse_call(self: &mut Self) -> Result<Expression, String> {
+        let mut expression = self.parse_primary()?;
+
+        loop {
+            if self.match_token_types(&[TokenType::LeftParen]) {
+                expression = self.finish_call(expression)?;
+            } else {
+                break;
+            }
+        }
+
+        return Ok(expression);
+    }
+
+    fn finish_call(self: &mut Self, expression: Expression) -> Result<Expression, String> {
+        let mut arguments: Vec<Expression> = Vec::new();
+
+        if !self.check(&TokenType::RightParen) {
+            loop {
+                if arguments.len() >= 255 {
+                    return Err("Can't have more than 255 arguments".to_owned());
+                }
+                arguments.push(self.parse_expression()?);
+                if !self.match_token_types(&[TokenType::Comma]) {
+                    break;
+                }
+            }
+        }
+
+        let paren = self.consume(
+            TokenType::RightParen,
+            "Expect ) after arguments.".to_owned(),
+        )?;
+
+        return Ok(Expression::Call(CallExpression {
+            callee: Box::new(expression),
+            paren: paren.clone(),
+            arguments: arguments,
+        }));
     }
 
     fn parse_primary(self: &mut Self) -> Result<Expression, String> {
@@ -521,7 +547,6 @@ impl Parser {
                 | TokenType::For
                 | TokenType::If
                 | TokenType::While
-                | TokenType::Print
                 | TokenType::Return => {
                     return;
                 }
