@@ -26,3 +26,6 @@ If you are interested in the grammar definitions of this language you can read i
 - Add break expression;
 - Add ++ -- expression;
 - Add continue expression;
+- Steal Object from javascript and call it map
+- Rename this project into something catchy
+- Profit
