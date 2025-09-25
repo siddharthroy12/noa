@@ -3,13 +3,14 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{environment::Environment, error::LoxError, statement::BlockStatement};
+use crate::lox::{environment::Environment, error::LoxError, statement::Statement};
 
 pub type Number = f64;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
-    pub body: Option<BlockStatement>,
+    pub body: Option<Box<Statement>>,
+    pub params: Vec<String>,
     pub callback: Option<
         fn(
             arguments: &Vec<Object>,
@@ -33,9 +34,7 @@ impl Function {
 
         match &self.body {
             Some(block) => {
-                for statement in &block.statements {
-                    statement.execute(environment.clone())?;
-                }
+                block.execute(environment)?;
             }
             None => {}
         }

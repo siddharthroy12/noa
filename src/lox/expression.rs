@@ -307,13 +307,28 @@ impl Expression {
             Expression::Call(call_expression) => {
                 let callee = call_expression.callee.evaluate(environment.clone())?;
                 let mut arguments: Vec<Object> = Vec::new();
+                let mut env = Environment::new();
+                env.enclose(environment.clone());
 
                 match callee {
                     Object::Function(function) => {
-                        for arg in &call_expression.arguments {
-                            arguments.push(arg.evaluate(environment.clone())?);
+                        if function.params.len() != call_expression.arguments.len() {
+                            return Err(LoxError {
+                                line: call_expression.paren.line,
+                                location: "(".to_owned(),
+                                message: format!(
+                                    "Expected {} arguments got {} arguments",
+                                    function.params.len(),
+                                    call_expression.arguments.len()
+                                ),
+                            });
                         }
-                        return function.call(arguments, environment.clone());
+                        for (i, arg) in call_expression.arguments.iter().enumerate() {
+                            let value = arg.evaluate(environment.clone())?;
+                            arguments.push(value.clone());
+                            env.define(function.params[i].to_owned(), value.clone());
+                        }
+                        return function.call(arguments, Arc::new(Mutex::new(env)));
                     }
                     _ => {
                         return Err(LoxError {

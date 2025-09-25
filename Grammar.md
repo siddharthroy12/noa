@@ -4,8 +4,11 @@
 
 ```
 program         -> declaration* EOF;
-declaration     -> var_decl | statement;
+declaration     -> var_decl | func_decl | statement;
 var_decl        -> var IDENTIFIER ("=" statement)? ";";
+func_decl       -> "fun" function;
+function        -> IDENTIFIER "(" parameters? ")" block;
+parameters      -> IDENTIFIER ( "," IDENTIFIER )* ;
 statement       -> expr_statement | block | if | while | for;
 while           -> "while" "(" expression ")" statement;
 for             -> "for" "(" (var_decl | expr_statement | ";") expression? ";" expression? ")" statement;

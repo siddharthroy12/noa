@@ -1,7 +1,11 @@
 use std::sync::{Arc, Mutex};
 
 use crate::lox::{
-    environment::Environment, error::LoxError, expression::Expression, token::Token, types::Object,
+    environment::Environment,
+    error::LoxError,
+    expression::Expression,
+    token::Token,
+    types::{Function, Object},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,6 +15,13 @@ pub enum Statement {
     Block(BlockStatement),
     If(IfStatement),
     While(WhileStatement),
+    Function(FunctionStatement),
+}
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionStatement {
+    pub name: Token,
+    pub params: Vec<Token>,
+    pub body: Box<Statement>,
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct WhileStatement {
@@ -110,6 +121,29 @@ impl Statement {
                 }
 
                 return Ok(());
+            }
+            Statement::Function(function_statement) => {
+                let params: Vec<String> = function_statement
+                    .params
+                    .iter()
+                    .map(|p| p.lexeme.to_owned())
+                    .collect();
+                let func = Object::Function(Box::new(Function {
+                    body: Some(function_statement.body.clone()),
+                    params: params,
+                    callback: None,
+                }));
+                match environment.lock() {
+                    Ok(mut mutex) => mutex.define(function_statement.name.lexeme.clone(), func),
+                    Err(_) => {
+                        return Err(LoxError {
+                            line: function_statement.name.line,
+                            location: function_statement.name.lexeme.to_owned(),
+                            message: "Failed to lock environment".to_owned(),
+                        });
+                    }
+                };
+                Ok(())
             }
         }
     }

@@ -4,7 +4,8 @@ use crate::lox::expression::{
     LiteralExpression, LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{
-    BlockStatement, ExpressionStatement, IfStatement, Statement, VarStatement, WhileStatement,
+    BlockStatement, ExpressionStatement, FunctionStatement, IfStatement, Statement, VarStatement,
+    WhileStatement,
 };
 use crate::lox::token::{Token, TokenType};
 use crate::lox::types::Object;
@@ -54,6 +55,9 @@ impl Parser {
         if self.match_token_types(&[TokenType::Var]) {
             return self.parse_var_declaration();
         }
+        if self.match_token_types(&[TokenType::Fun]) {
+            return self.parse_func_declaration("function".to_owned());
+        }
 
         return self.parse_statement();
     }
@@ -72,6 +76,44 @@ impl Parser {
         return Ok(Statement::Var(VarStatement {
             initializer,
             identifier: identifier,
+        }));
+    }
+
+    pub fn parse_func_declaration(self: &mut Self, kind: String) -> Result<Statement, String> {
+        let name = self
+            .consume(TokenType::Identifier, format!("Expect {} name", kind))?
+            .clone();
+
+        self.consume(TokenType::LeftParen, "Expect ( after name".to_owned())?;
+
+        let mut parameters: Vec<Token> = Vec::new();
+
+        if !self.check(&TokenType::RightParen) {
+            loop {
+                if parameters.len() >= 255 {
+                    return Err("Cannot have more than 255 parameters".to_owned());
+                }
+
+                parameters.push(
+                    self.consume(TokenType::Identifier, "Expect parameter name".to_owned())?
+                        .clone(),
+                );
+
+                if !self.match_token_types(&[TokenType::Comma]) {
+                    break;
+                }
+            }
+        }
+        self.consume(
+            TokenType::RightParen,
+            "Expect ) after parameters".to_owned(),
+        )?;
+        self.consume(TokenType::LeftBrace, "Expect { after )".to_owned())?;
+        let body = self.parse_block_statement()?;
+        return Ok(Statement::Function(FunctionStatement {
+            name: name.clone(),
+            params: parameters,
+            body: Box::new(body),
         }));
     }
 

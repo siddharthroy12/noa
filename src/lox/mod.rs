@@ -32,6 +32,7 @@ impl Lox {
         self.setup_global_object(
             "print".to_owned(),
             Object::Function(Box::new(Function {
+                params: vec!["str".to_string()],
                 body: None,
                 callback: Some(print),
             })),
