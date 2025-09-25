@@ -1,6 +1,10 @@
-use std::fs;
+use std::{
+    fs,
+    sync::{Arc, Mutex},
+};
 
 use crate::lox::{
+    environment::Environment,
     error::LoxError,
     interpreter::Interpreter,
     library::print,
@@ -29,12 +33,14 @@ impl Lox {
         };
     }
     pub fn load_libray(self: &mut Self) {
+        let env = Arc::new(Mutex::new(Environment::new()));
         self.setup_global_object(
             "print".to_owned(),
             Object::Function(Box::new(Function {
                 params: vec!["str".to_string()],
                 body: None,
                 callback: Some(print),
+                environment: env,
             })),
         );
     }

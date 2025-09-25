@@ -79,3 +79,21 @@ fun rec() {
     print("this will not appear");
 }
 print(rec());
+
+
+fun closure() {
+    var count = 0;
+
+    fun counter() {
+        count = count +1;
+        return count;
+
+    }
+    return counter;
+}
+
+var counter = closure();
+
+print(counter()); // 1
+print(counter()); // 2
+print(counter()); // 3

@@ -8,7 +8,7 @@ use crate::lox::{
     token::Token,
     types::Object,
 };
-
+#[derive(Debug, Clone)]
 pub struct Environment {
     values: HashMap<String, Object>,
     enclosing: Option<Arc<Mutex<Environment>>>,

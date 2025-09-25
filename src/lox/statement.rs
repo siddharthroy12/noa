@@ -8,7 +8,7 @@ use crate::lox::{
     types::{Function, Object},
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Statement {
     Expression(ExpressionStatement),
     Var(VarStatement),
@@ -18,40 +18,40 @@ pub enum Statement {
     Function(FunctionStatement),
     Return(ReturnStatement),
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct ReturnStatement {
     pub keyword: Token,
     pub value: Box<Expression>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct FunctionStatement {
     pub name: Token,
     pub params: Vec<Token>,
     pub body: Box<Statement>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct WhileStatement {
     pub check: Box<Expression>,
     pub if_true: Box<Statement>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 
 pub struct IfStatement {
     pub check: Box<Expression>,
     pub if_true: Box<Statement>,
     pub if_false: Option<Box<Statement>>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 
 pub struct BlockStatement {
     pub statements: Vec<Statement>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 
 pub struct ExpressionStatement {
     pub expression: Box<Expression>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 
 pub struct VarStatement {
     pub initializer: Option<Box<Expression>>,
@@ -141,6 +141,7 @@ impl Statement {
                     body: Some(function_statement.body.clone()),
                     params: params,
                     callback: None,
+                    environment: environment.clone(),
                 }));
                 match environment.lock() {
                     Ok(mut mutex) => mutex.define(function_statement.name.lexeme.clone(), func),

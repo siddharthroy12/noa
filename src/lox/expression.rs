@@ -7,7 +7,7 @@ use crate::lox::{
     types::{Number, Object},
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     Binary(BinaryExpression),
     Group(GroupExpression),
@@ -20,56 +20,56 @@ pub enum Expression {
     Call(CallExpression),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct CallExpression {
     pub callee: Box<Expression>,
     pub paren: Token,
     pub arguments: Vec<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct LogicalExpression {
     pub left: Box<Expression>,
     pub operator: Token,
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct AssginExpression {
     pub token: Token,
     pub expression: Box<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct VariableExpression {
     pub token: Token,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct TernaryExpression {
     pub check: Box<Expression>,
     pub if_true: Box<Expression>,
     pub if_false: Box<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct BinaryExpression {
     pub left: Box<Expression>,
     pub operator: Token,
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct GroupExpression {
     pub expression: Box<Expression>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct LiteralExpression {
     pub value: Object,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct UnaryExpression {
     pub operator: Token,
     pub right: Box<Expression>,
@@ -310,8 +310,6 @@ impl Expression {
             Expression::Call(call_expression) => {
                 let callee = call_expression.callee.evaluate(environment.clone())?;
                 let mut arguments: Vec<Object> = Vec::new();
-                let mut env = Environment::new();
-                env.enclose(environment.clone());
 
                 match callee {
                     Object::Function(function) => {
@@ -329,9 +327,8 @@ impl Expression {
                         for (i, arg) in call_expression.arguments.iter().enumerate() {
                             let value = arg.evaluate(environment.clone())?;
                             arguments.push(value.clone());
-                            env.define(function.params[i].to_owned(), value.clone());
                         }
-                        return function.call(arguments, Arc::new(Mutex::new(env)));
+                        return function.call(arguments);
                     }
                     _ => {
                         return Err(LoxTermination::Error(LoxError {

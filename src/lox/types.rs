@@ -3,14 +3,19 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{environment::Environment, error::LoxTermination, statement::Statement};
+use crate::lox::{
+    environment::{self, Environment},
+    error::LoxTermination,
+    statement::Statement,
+};
 
 pub type Number = f64;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Function {
     pub body: Option<Box<Statement>>,
     pub params: Vec<String>,
+    pub environment: Arc<Mutex<Environment>>,
     pub callback: Option<
         fn(
             arguments: &Vec<Object>,
@@ -20,11 +25,13 @@ pub struct Function {
 }
 
 impl Function {
-    pub fn call(
-        self: &Self,
-        arguments: Vec<Object>,
-        environment: Arc<Mutex<Environment>>,
-    ) -> Result<Object, LoxTermination> {
+    pub fn call(self: &Self, arguments: Vec<Object>) -> Result<Object, LoxTermination> {
+        let mut environment = Environment::new();
+        environment.enclose(self.environment.clone());
+        for (i, arg) in arguments.iter().enumerate() {
+            environment.define(self.params[i].clone(), arg.clone());
+        }
+        let mut environment = Arc::new(Mutex::new((environment)));
         match self.callback {
             Some(callback) => {
                 return callback(&arguments, environment);
@@ -53,7 +60,7 @@ impl Function {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Object {
     Number(Number),
     String(String),
