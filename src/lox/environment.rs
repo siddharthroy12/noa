@@ -3,7 +3,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{error::LoxError, token::Token, types::Object};
+use crate::lox::{
+    error::{LoxError, LoxTermination},
+    token::Token,
+    types::Object,
+};
 
 pub struct Environment {
     values: HashMap<String, Object>,
@@ -24,7 +28,7 @@ impl Environment {
     pub fn define(self: &mut Self, identifier: String, value: Object) {
         self.values.insert(identifier, value);
     }
-    pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), LoxError> {
+    pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), LoxTermination> {
         if !self.values.contains_key(&token.lexeme) {
             match &self.enclosing {
                 Some(enclosing) => match enclosing.lock() {
@@ -34,11 +38,11 @@ impl Environment {
                     }
                 },
                 None => {
-                    return Err(LoxError {
+                    return Err(LoxTermination::Error(LoxError {
                         line: token.line,
                         location: token.lexeme.clone(),
                         message: format!("Unkown variable"),
-                    });
+                    }));
                 }
             }
         }
@@ -46,7 +50,7 @@ impl Environment {
         Ok(())
     }
 
-    pub fn get(self: &mut Self, token: &Token) -> Result<Object, LoxError> {
+    pub fn get(self: &mut Self, token: &Token) -> Result<Object, LoxTermination> {
         match self.values.get(&token.lexeme) {
             Some(value) => Ok(value.clone()),
             None => match &self.enclosing {
@@ -56,11 +60,11 @@ impl Environment {
                         panic!("Failed to get enclosing environment")
                     }
                 },
-                None => Err(LoxError {
+                None => Err(LoxTermination::Error(LoxError {
                     line: token.line,
                     location: token.lexeme.clone(),
                     message: format!("Unkown variable"),
-                }),
+                })),
             },
         }
     }

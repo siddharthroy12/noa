@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::lox::{
     environment::Environment,
-    error::LoxError,
+    error::{LoxError, LoxTermination},
     expression::Expression,
     token::Token,
     types::{Function, Object},
@@ -16,6 +16,12 @@ pub enum Statement {
     If(IfStatement),
     While(WhileStatement),
     Function(FunctionStatement),
+    Return(ReturnStatement),
+}
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReturnStatement {
+    pub keyword: Token,
+    pub value: Box<Expression>,
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionStatement {
@@ -53,7 +59,10 @@ pub struct VarStatement {
 }
 
 impl Statement {
-    pub fn execute(self: &Self, environment: Arc<Mutex<Environment>>) -> Result<(), LoxError> {
+    pub fn execute(
+        self: &Self,
+        environment: Arc<Mutex<Environment>>,
+    ) -> Result<(), LoxTermination> {
         match self {
             Statement::Expression(expression_statement) => {
                 expression_statement.expression.evaluate(environment)?;
@@ -69,13 +78,13 @@ impl Statement {
                         mutex.define(var_statement.identifier.lexeme.clone(), value);
                     }
                     Err(_) => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: var_statement.identifier.line,
                             location: var_statement.identifier.lexeme.clone(),
                             message: format!(
                                 "Failed to get local scope memory to assign the value"
                             ),
-                        });
+                        }));
                     }
                 }
                 Ok(())
@@ -87,11 +96,11 @@ impl Statement {
                         mutex.enclose(environment);
                     }
                     Err(_) => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: 0,
                             location: format!("N/A"),
                             message: format!("Unable to create local scope for block"),
-                        });
+                        }));
                     }
                 }
                 for statement in &block_statement.statements {
@@ -136,14 +145,18 @@ impl Statement {
                 match environment.lock() {
                     Ok(mut mutex) => mutex.define(function_statement.name.lexeme.clone(), func),
                     Err(_) => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: function_statement.name.line,
                             location: function_statement.name.lexeme.to_owned(),
                             message: "Failed to lock environment".to_owned(),
-                        });
+                        }));
                     }
                 };
                 Ok(())
+            }
+            Statement::Return(return_statement) => {
+                let value = return_statement.value.evaluate(environment)?;
+                return Err(LoxTermination::Return(value));
             }
         }
     }

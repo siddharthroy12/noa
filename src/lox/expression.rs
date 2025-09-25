@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::lox::{
     environment::Environment,
-    error::LoxError,
+    error::{LoxError, LoxTermination},
     token::{Token, TokenType},
     types::{Number, Object},
 };
@@ -92,22 +92,25 @@ impl Expression {
         return res;
     }
 
-    fn get_number_object(object: Object, line: usize) -> Result<Number, LoxError> {
+    fn get_number_object(object: Object, line: usize) -> Result<Number, LoxTermination> {
         match object {
             Object::Number(n) => {
                 return Ok(n);
             }
             _ => {
-                return Err(LoxError {
+                return Err(LoxTermination::Error(LoxError {
                     line: line,
                     location: format!("\"{}\"", object.to_string()),
                     message: format!("{} is not a valid number", object.to_string()),
-                });
+                }));
             }
         }
     }
 
-    pub fn evaluate(self: &Self, environment: Arc<Mutex<Environment>>) -> Result<Object, LoxError> {
+    pub fn evaluate(
+        self: &Self,
+        environment: Arc<Mutex<Environment>>,
+    ) -> Result<Object, LoxTermination> {
         match self {
             Expression::Binary(binary_expression) => {
                 let left_value = binary_expression.left.evaluate(environment.clone())?;
@@ -187,21 +190,21 @@ impl Expression {
                         let n2 =
                             Self::get_number_object(right_value, binary_expression.operator.line)?;
                         if n2 == 0.0 {
-                            return Err(LoxError {
+                            return Err(LoxTermination::Error(LoxError {
                                 line: binary_expression.operator.line,
                                 location: n2.to_string(),
                                 message: format!("Cannot divide by zero"),
-                            });
+                            }));
                         }
                         return Ok(Object::Number(n1 / n2));
                     }
 
                     _ => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: binary_expression.operator.line,
                             location: binary_expression.operator.lexeme.clone(),
                             message: format!("Unknown binary operator"),
-                        });
+                        }));
                     }
                 }
             }
@@ -223,11 +226,11 @@ impl Expression {
                         return Ok(Object::Number(-n1));
                     }
                     _ => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: unary_expression.operator.line,
                             location: unary_expression.operator.lexeme.clone(),
                             message: format!("Unknown unary operator"),
-                        });
+                        }));
                     }
                 }
             }
@@ -250,11 +253,11 @@ impl Expression {
                         mutex.assign(&assgin_expression.token, value.clone())?;
                     }
                     Err(_) => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: assgin_expression.token.line,
                             location: assgin_expression.token.lexeme.clone(),
                             message: format!("Failed to get local scope memory"),
-                        });
+                        }));
                     }
                 }
                 return Ok(value);
@@ -265,11 +268,11 @@ impl Expression {
                     return Ok(value);
                 }
                 Err(_) => {
-                    return Err(LoxError {
+                    return Err(LoxTermination::Error(LoxError {
                         line: variable_expression.token.line,
                         location: variable_expression.token.lexeme.clone(),
                         message: format!("Failed to get local scope memory"),
-                    });
+                    }));
                 }
             },
             Expression::Logical(logical_expression) => {
@@ -313,7 +316,7 @@ impl Expression {
                 match callee {
                     Object::Function(function) => {
                         if function.params.len() != call_expression.arguments.len() {
-                            return Err(LoxError {
+                            return Err(LoxTermination::Error(LoxError {
                                 line: call_expression.paren.line,
                                 location: "(".to_owned(),
                                 message: format!(
@@ -321,7 +324,7 @@ impl Expression {
                                     function.params.len(),
                                     call_expression.arguments.len()
                                 ),
-                            });
+                            }));
                         }
                         for (i, arg) in call_expression.arguments.iter().enumerate() {
                             let value = arg.evaluate(environment.clone())?;
@@ -331,11 +334,11 @@ impl Expression {
                         return function.call(arguments, Arc::new(Mutex::new(env)));
                     }
                     _ => {
-                        return Err(LoxError {
+                        return Err(LoxTermination::Error(LoxError {
                             line: call_expression.paren.line,
                             location: "(".to_owned(),
                             message: format!("{} is not callable", callee.to_string()),
-                        });
+                        }));
                     }
                 }
             }

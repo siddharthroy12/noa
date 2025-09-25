@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{environment::Environment, error::LoxError, statement::Statement};
+use crate::lox::{environment::Environment, error::LoxTermination, statement::Statement};
 
 pub type Number = f64;
 
@@ -15,7 +15,7 @@ pub struct Function {
         fn(
             arguments: &Vec<Object>,
             environment: Arc<Mutex<Environment>>,
-        ) -> Result<Object, LoxError>,
+        ) -> Result<Object, LoxTermination>,
     >,
 }
 
@@ -24,7 +24,7 @@ impl Function {
         self: &Self,
         arguments: Vec<Object>,
         environment: Arc<Mutex<Environment>>,
-    ) -> Result<Object, LoxError> {
+    ) -> Result<Object, LoxTermination> {
         match self.callback {
             Some(callback) => {
                 return callback(&arguments, environment);
@@ -33,9 +33,19 @@ impl Function {
         }
 
         match &self.body {
-            Some(block) => {
-                block.execute(environment)?;
-            }
+            Some(block) => match block.execute(environment) {
+                Err(e) => match e {
+                    LoxTermination::Error(_) => {
+                        return Err(e);
+                    }
+                    LoxTermination::Return(object) => {
+                        return Ok(object);
+                    }
+                    LoxTermination::Break => todo!(),
+                    LoxTermination::Continue => todo!(),
+                },
+                _ => {}
+            },
             None => {}
         }
 

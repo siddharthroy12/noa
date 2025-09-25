@@ -75,5 +75,7 @@ test(1, 2, a); // Number of parameters must match
 // Recursion is also supported
 fun rec() {
     // rec();
+    return "this will appear";
+    print("this will not appear");
 }
-rec();
+print(rec());

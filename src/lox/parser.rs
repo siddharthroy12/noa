@@ -4,8 +4,8 @@ use crate::lox::expression::{
     LiteralExpression, LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{
-    BlockStatement, ExpressionStatement, FunctionStatement, IfStatement, Statement, VarStatement,
-    WhileStatement,
+    BlockStatement, ExpressionStatement, FunctionStatement, IfStatement, ReturnStatement,
+    Statement, VarStatement, WhileStatement,
 };
 use crate::lox::token::{Token, TokenType};
 use crate::lox::types::Object;
@@ -129,11 +129,34 @@ impl Parser {
         if self.match_token_types(&[TokenType::While]) {
             return self.parse_while_statement();
         }
+
         if self.match_token_types(&[TokenType::For]) {
             return self.parse_for_statement();
         }
 
+        if self.match_token_types(&[TokenType::Return]) {
+            return self.parse_return_statement();
+        }
+
         return self.parse_expression_statement();
+    }
+
+    pub fn parse_return_statement(self: &mut Self) -> Result<Statement, String> {
+        let token = self.previous().clone();
+        let mut expr = Expression::Literal(LiteralExpression { value: Object::Nil });
+        if !self.check(&TokenType::Semicolon) {
+            expr = self.parse_expression()?;
+        }
+
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ; after return value".to_owned(),
+        )?;
+
+        return Ok(Statement::Return(ReturnStatement {
+            keyword: token,
+            value: Box::new(expr),
+        }));
     }
 
     pub fn parse_if_statement(self: &mut Self) -> Result<Statement, String> {
