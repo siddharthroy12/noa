@@ -97,3 +97,15 @@ var counter = closure();
 print(counter()); // 1
 print(counter()); // 2
 print(counter()); // 3
+
+var a = "global";
+{
+  fun showA() {
+    print(a);
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}
+// This prints global global

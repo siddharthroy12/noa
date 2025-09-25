@@ -22,6 +22,31 @@ impl Environment {
             enclosing: None,
         };
     }
+    pub fn snapshot(self: &Self) -> Result<Self, LoxTermination> {
+        match self.enclosing.clone() {
+            Some(e) => match e.lock() {
+                Ok(mutex) => {
+                    let enclose = mutex.snapshot()?;
+                    return Ok(Self {
+                        values: self.values.clone(),
+                        enclosing: Some(Arc::new(Mutex::new(enclose))),
+                    });
+                }
+                Err(_) => {
+                    return Err(LoxTermination::Error(LoxError {
+                        line: 0,
+                        location: "N/A".to_owned(),
+                        message: "Failed to lock environemnt".to_owned(),
+                    }));
+                }
+            },
+            _ => {}
+        };
+        return Ok(Self {
+            values: self.values.clone(),
+            enclosing: None,
+        });
+    }
     pub fn enclose(self: &mut Self, enclosing: Arc<Mutex<Environment>>) {
         self.enclosing = Some(enclosing);
     }

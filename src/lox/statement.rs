@@ -137,14 +137,34 @@ impl Statement {
                     .iter()
                     .map(|p| p.lexeme.to_owned())
                     .collect();
-                let func = Object::Function(Box::new(Function {
-                    body: Some(function_statement.body.clone()),
-                    params: params,
-                    callback: None,
-                    environment: environment.clone(),
-                }));
+
                 match environment.lock() {
-                    Ok(mut mutex) => mutex.define(function_statement.name.lexeme.clone(), func),
+                    Ok(mut mutex) => {
+                        let snapshot = mutex.snapshot()?;
+
+                        let snapshot = Arc::new(Mutex::new(snapshot));
+
+                        let func = Object::Function(Box::new(Function {
+                            body: Some(function_statement.body.clone()),
+                            params: params,
+                            callback: None,
+                            environment: snapshot.clone(),
+                        }));
+
+                        match snapshot.lock() {
+                            Ok(mut mutex) => {
+                                mutex.define(function_statement.name.lexeme.clone(), func.clone())
+                            }
+                            Err(_) => {
+                                return Err(LoxTermination::Error(LoxError {
+                                    line: 0,
+                                    location: "N/A".to_owned(),
+                                    message: "Failed to lock environment".to_owned(),
+                                }));
+                            }
+                        }
+                        mutex.define(function_statement.name.lexeme.clone(), func)
+                    }
                     Err(_) => {
                         return Err(LoxTermination::Error(LoxError {
                             line: function_statement.name.line,
