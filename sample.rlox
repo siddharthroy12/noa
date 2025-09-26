@@ -3,7 +3,7 @@ var a = 10;
 var b = 10.20;
 var c = "Hello world";
 var d = true;
-var e;
+var e = nil;
 
 // Arithmentic operators
 a = 10 + 20; a = 10 - 20; a = 10 / 20; a = 10 * 20;
@@ -109,3 +109,4 @@ var a = "global";
   showA();
 }
 // This prints global global
+print(nil);
