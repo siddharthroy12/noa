@@ -28,4 +28,4 @@ If you are interested in the grammar definitions of this language you can read i
 - Add break expression;
 - Add ++ -- expression;
 - Add continue expression;
-- Profit
+- Add standard library functions
