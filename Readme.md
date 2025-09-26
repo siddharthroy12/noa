@@ -8,7 +8,7 @@ Read the [cheatsheet](./Cheatsheet.md) or [sample.noa](./sample.noa) file.
 
 ## Build Noa
 
-1. Make sure that you are Rust complier installed and all of it's dependencies
+1. Make sure that you are Rust complier installed and all of its dependencies
 2. Clone this repo.
 3. Run `cargo build` or `cargo run` to build or run the interpreter
 
