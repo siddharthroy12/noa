@@ -112,7 +112,7 @@ println(person["name"]);
 person["name"] = "Roy";
 ```
 
-Objects:
+Tables with functions:
 
 ```
 fn create_actor() {
