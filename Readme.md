@@ -4,6 +4,8 @@ Noa is a toy programming language written in Rust.
 
 Noa is made to learn how to write interpreters. I have been reading [Crafting Interpreters](https://craftinginterpreters.com/) to learn how to build interpreters.
 
+## Learn Noa
+
 To learn how to use this langauge, refer to the [sample.noa](./sample.noa) file, which contains all the featues this langauge has.
 
 ## Building
