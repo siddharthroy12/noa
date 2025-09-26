@@ -1,10 +1,10 @@
-// Variables
-var a = 10; // Number
-var b = 10.20; // Floating Point Number
-var c = "Hello world"; // String
-var d = true; // Boolean
-var e = nil; // Nil
-var a = {
+// letiables
+let a = 10; // Number
+let b = 10.20; // Floating Point Number
+let c = "Hello world"; // String
+let d = true; // Boolean
+let e = nil; // Nil
+let a = {
     "name": "Siddharth",
     "properties": {
         "age": 22,
@@ -33,11 +33,11 @@ println(!false);
 
 // Blocks
 {
-    var a = 20;
+    let a = 20;
     println(a);
 
     {
-        var c = 30;
+        let c = 30;
         println(c);
     }
 }
@@ -60,21 +60,21 @@ println(true and "Hello"); // Returns the right operand if both operands are tru
 
 // Loops
 {
-    var i = 0;
+    let i = 0;
     while (i < 10) {
         println(i);
         i = i + 1;
     }
 }
 
-for (var i = 0; i < 10 ; i = i + 1) {
+for (let i = 0; i < 10 ; i = i + 1) {
     println(i);
 }
 
-// Functions
-println("println function");
+// fnctions
+println("println fnction");
 
-fun test(a,b,c) {
+fn test(a,b,c) {
     println(a);
     println(b);
 }
@@ -82,7 +82,7 @@ fun test(a,b,c) {
 test(1, 2, a); // Number of parameters must match
 
 // Recursion is also supported
-fun rec() {
+fn rec() {
     // rec();
     return "this will appear";
     println("this will not appear");
@@ -90,10 +90,10 @@ fun rec() {
 println(rec());
 
 
-fun closure() {
-    var count = 0;
+fn closure() {
+    let count = 0;
 
-    fun counter() {
+    fn counter() {
         count = count +1;
         return count;
 
@@ -101,7 +101,7 @@ fun closure() {
     return counter;
 }
 
-var counter = closure();
+let counter = closure();
 
 println(counter()); // 1
 println(counter()); // 2
@@ -109,7 +109,7 @@ println(counter()); // 3
 
 // Tables
 
-var a = {
+let a = {
     "name": "Siddharth",
     "properties": {
         "age": 22,
@@ -125,12 +125,12 @@ println(a["name"]);
 
 
 // Create OOP like objects
-fun create_actor() {
-    var a = {
+fn create_actor() {
+    let a = {
         "health": 100,
     };
 
-    fun take_damage(amount) {
+    fn take_damage(amount) {
         a["health"] = a["health"] - amount;
     }
 
@@ -139,7 +139,7 @@ fun create_actor() {
     return a;
 }
 
-var actor1 = create_actor();
+let actor1 = create_actor();
 println(actor1);
 actor1["take_damage"](10);
 println(actor1);
@@ -150,7 +150,7 @@ println(create_actor()["health"]);
 // IO
 print("Without newline");
 println("With new line");
-var inp = input();
+let inp = input();
 print(inp);
 
 // String

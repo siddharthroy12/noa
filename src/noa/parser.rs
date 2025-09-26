@@ -55,10 +55,10 @@ impl Parser {
     }
 
     pub fn parse_declaration(self: &mut Self) -> Result<Statement, String> {
-        if self.match_token_types(&[TokenType::Var]) {
+        if self.match_token_types(&[TokenType::Let]) {
             return self.parse_var_declaration();
         }
-        if self.match_token_types(&[TokenType::Fun]) {
+        if self.match_token_types(&[TokenType::Fn]) {
             return self.parse_func_declaration("function".to_owned());
         }
 
@@ -230,7 +230,7 @@ impl Parser {
 
         // First part
         if !self.match_token_types(&[TokenType::Semicolon]) {
-            if self.match_token_types(&[TokenType::Var]) {
+            if self.match_token_types(&[TokenType::Let]) {
                 initializer = self.parse_var_declaration()?;
             } else {
                 initializer = self.parse_expression_statement()?;
@@ -662,8 +662,8 @@ impl Parser {
             }
             match self.peek().token_type {
                 TokenType::Class
-                | TokenType::Fun
-                | TokenType::Var
+                | TokenType::Fn
+                | TokenType::Let
                 | TokenType::For
                 | TokenType::If
                 | TokenType::While

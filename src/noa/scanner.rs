@@ -25,7 +25,7 @@ impl Scanner {
         keywords.insert(String::from("else"), TokenType::Else);
         keywords.insert(String::from("false"), TokenType::False);
         keywords.insert(String::from("for"), TokenType::For);
-        keywords.insert(String::from("fun"), TokenType::Fun);
+        keywords.insert(String::from("fn"), TokenType::Fn);
         keywords.insert(String::from("if"), TokenType::If);
         keywords.insert(String::from("nil"), TokenType::Nil);
         keywords.insert(String::from("or"), TokenType::Or);
@@ -33,7 +33,7 @@ impl Scanner {
         keywords.insert(String::from("super"), TokenType::Super);
         keywords.insert(String::from("this"), TokenType::This);
         keywords.insert(String::from("true"), TokenType::True);
-        keywords.insert(String::from("var"), TokenType::Var);
+        keywords.insert(String::from("let"), TokenType::Let);
         keywords.insert(String::from("while"), TokenType::While);
 
         return Scanner {
