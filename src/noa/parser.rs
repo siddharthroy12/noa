@@ -493,12 +493,14 @@ impl Parser {
         return self.parse_call();
     }
 
-    fn parse_call(self: &mut Self) -> Result<Expression, String> {
-        let mut expression = self.parse_key_access()?;
+    fn parse_call_or_key_access(self: &mut Self) -> Result<Expression, String> {
+        let mut expression = self.parse_primary()?;
 
         loop {
             if self.match_token_types(&[TokenType::LeftParen]) {
                 expression = self.finish_call(expression)?;
+            } else if self.match_token_types(&[TokenType::LeftSquareBracket]) {
+                expression = self.finish_access_key(expression)?;
             } else {
                 break;
             }
@@ -534,22 +536,17 @@ impl Parser {
         }));
     }
 
-    fn parse_key_access(self: &mut Self) -> Result<Expression, String> {
-        let mut expression = self.parse_primary()?;
-        if self.match_token_types(&[TokenType::LeftSquareBracket]) {
-            let key = self.parse_expression()?;
-            self.consume(
-                TokenType::RightSqureBracket,
-                "Expect ] after arguments.".to_owned(),
-            )?;
-            return Ok(Expression::KeyAccess(KeyAccessExpression {
-                target: Box::new(expression),
-                left_bracket: self.previous().clone(),
-                key: Box::new(key),
-            }));
-        }
-
-        return Ok(expression);
+    fn finish_access_key(self: &mut Self, expression: Expression) -> Result<Expression, String> {
+        let key = self.parse_expression()?;
+        self.consume(
+            TokenType::RightSqureBracket,
+            "Expect ] after arguments.".to_owned(),
+        )?;
+        return Ok(Expression::KeyAccess(KeyAccessExpression {
+            target: Box::new(expression),
+            left_bracket: self.previous().clone(),
+            key: Box::new(key),
+        }));
     }
 
     fn parse_primary(self: &mut Self) -> Result<Expression, String> {

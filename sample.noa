@@ -143,4 +143,4 @@ var actor1 = create_actor();
 print(actor1);
 actor1["take_damage"](10);
 print(actor1);
-print((create_actor())["health"]);
+print(create_actor()["health"]);
