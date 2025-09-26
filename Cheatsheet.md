@@ -2,20 +2,20 @@
 
 ### 📦 Variables
 
-```js
+```
 let a = 10; // Number
 let b = 10.5; // Float
 let c = "Hello"; // String
 let d = true; // Boolean
 let e = nil; // Nil
-let obj = { key: "value" }; // Table
+let obj = { "key": "value" }; // Table
 ```
 
 ---
 
 ### 🔢 Operators
 
-```js
+```
 // Arithmetic
 +  -  *  /
 
@@ -38,7 +38,7 @@ cond ? x : y
 
 ### 🧱 Blocks & Scope
 
-```js
+```
 {
   let x = 10;
   {
@@ -51,7 +51,7 @@ cond ? x : y
 
 ### 🔀 Control Flow
 
-```js
+```
 if (cond) { ... } else { ... }
 
 while (i < 10) { ... }
@@ -61,7 +61,7 @@ for (let i = 0; i < 10; i = i + 1) { ... }
 
 Logical operators:
 
-```js
+```
 a and b
 a or b
 ```
@@ -70,7 +70,7 @@ a or b
 
 ### 🛠️ Functions
 
-```js
+```
 fn add(a, b) {
   return a + b;
 }
@@ -80,7 +80,7 @@ println(add(2, 3));
 
 Recursion:
 
-```js
+```
 fn fact(n) {
   return n <= 1 ? 1 : n * fact(n - 1);
 }
@@ -88,7 +88,7 @@ fn fact(n) {
 
 Closures:
 
-```js
+```
 fn make_counter() {
   let c = 0;
   fn inc() { c = c + 1; return c; }
@@ -102,10 +102,10 @@ println(counter()); // 1
 
 ### 📦 Tables
 
-```js
+```
 let person = {
-  name: "Sid",
-  age: 22,
+  "name": "Sid",
+  "age": 22,
 };
 
 println(person["name"]);
@@ -114,7 +114,7 @@ person["name"] = "Roy";
 
 Objects:
 
-```js
+```
 fn create_actor() {
   let a = { "health": 100 };
   fn damage(n) { a["health"] = a["health"] - n; }
@@ -127,7 +127,7 @@ fn create_actor() {
 
 ### 📚 Standard Library
 
-```js
+```
 // IO
 print("Hi");
 println("Hello");
@@ -138,5 +138,5 @@ str(x); // to string
 
 // Generic
 len("Hello"); // 5
-len({ a: 1, b: 2 }); // 2
+len({ "a": 1, "b": 2 }); // 2
 ```
