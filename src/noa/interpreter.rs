@@ -1,9 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use crate::lox::{
-    Lox,
+use crate::noa::{
+    Noa,
     environment::{self, Environment},
-    error::LoxError,
+    error::NoaError,
     statement::Statement,
     types::Object,
 };
@@ -26,27 +26,27 @@ impl Interpreter {
             Err(_) => panic!("Failed to set global object {}", name),
         }
     }
-    pub fn execute(self: &mut Self, statements: Vec<Statement>) -> Result<(), LoxError> {
+    pub fn execute(self: &mut Self, statements: Vec<Statement>) -> Result<(), NoaError> {
         for statement in statements {
             match statement.execute(self.environment.clone()) {
                 Err(e) => match e {
-                    crate::lox::error::LoxTermination::Error(lox_error) => return Err(lox_error),
-                    super::error::LoxTermination::Return(_) => {
-                        return Err(LoxError {
+                    crate::noa::error::NoaTermination::Error(noa_error) => return Err(noa_error),
+                    super::error::NoaTermination::Return(_) => {
+                        return Err(NoaError {
                             line: 0,
                             location: String::from("return"),
                             message: String::from("return can only be used inside a function"),
                         });
                     }
-                    super::error::LoxTermination::Break => {
-                        return Err(LoxError {
+                    super::error::NoaTermination::Break => {
+                        return Err(NoaError {
                             line: 0,
                             location: String::from("break"),
                             message: String::from("break can only be used loops"),
                         });
                     }
-                    super::error::LoxTermination::Continue => {
-                        return Err(LoxError {
+                    super::error::NoaTermination::Continue => {
+                        return Err(NoaError {
                             line: 0,
                             location: String::from("continue"),
                             message: String::from("continue can only be used loops"),

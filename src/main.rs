@@ -1,5 +1,5 @@
 use clap::Parser;
-use rlox::lox::Lox;
+use noa::noa::Noa;
 use std::io::{self, Write};
 
 #[derive(Parser, Debug)]
@@ -10,15 +10,15 @@ struct Args {
 }
 fn main() {
     let args = Args::parse();
-    let mut lox = Lox::new();
-    lox.load_libray();
+    let mut noa = Noa::new();
+    noa.load_libray();
     if args.script.is_empty() {
         loop {
             let mut line: String = String::new();
             print!(">> ");
             io::stdout().flush().expect("Failed to flush");
             match io::stdin().read_line(&mut line) {
-                Ok(_) => match lox.run(line) {
+                Ok(_) => match noa.run(line) {
                     Ok(_) => {}
                     Err(e) => {
                         println!("{}", e);
@@ -31,7 +31,7 @@ fn main() {
             }
         }
     } else {
-        if let Err(err) = lox.run_file(args.script) {
+        if let Err(err) = noa.run_file(args.script) {
             eprintln!("{}", err);
             std::process::exit(1);
         }

@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
-use crate::lox::error::LoxError;
-use crate::lox::expression::{
+use crate::noa::error::NoaError;
+use crate::noa::expression::{
     AssginExpression, BinaryExpression, CallExpression, Expression, GroupExpression,
     KeyAccessAssignExpression, KeyAccessExpression, LiteralExpression, LogicalExpression,
     TableExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
-use crate::lox::statement::{
+use crate::noa::statement::{
     BlockStatement, ExpressionStatement, FunctionStatement, IfStatement, ReturnStatement,
     Statement, VarStatement, WhileStatement,
 };
-use crate::lox::token::{Token, TokenType};
-use crate::lox::types::Object;
+use crate::noa::token::{Token, TokenType};
+use crate::noa::types::Object;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -23,7 +23,7 @@ impl Parser {
         return Parser { tokens, current: 0 };
     }
 
-    pub fn parse(self: &mut Self) -> Result<Vec<Statement>, LoxError> {
+    pub fn parse(self: &mut Self) -> Result<Vec<Statement>, NoaError> {
         let mut statements: Vec<Statement> = Vec::new();
 
         loop {
@@ -35,7 +35,7 @@ impl Parser {
                     statements.push(statement);
                 }
                 Err(err) => {
-                    return Err(LoxError {
+                    return Err(NoaError {
                         line: self.peek().line,
                         location: format!(
                             "{}",

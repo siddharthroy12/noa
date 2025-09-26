@@ -1,4 +1,4 @@
-use crate::lox::types::Object;
+use crate::noa::types::Object;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {

@@ -3,8 +3,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{
-    error::{LoxError, LoxTermination},
+use crate::noa::{
+    error::{NoaError, NoaTermination},
     token::Token,
     types::Object,
 };
@@ -22,7 +22,7 @@ impl Environment {
             enclosing: None,
         };
     }
-    pub fn snapshot(self: &Self) -> Result<Self, LoxTermination> {
+    pub fn snapshot(self: &Self) -> Result<Self, NoaTermination> {
         match self.enclosing.clone() {
             Some(e) => match e.lock() {
                 Ok(mutex) => {
@@ -33,7 +33,7 @@ impl Environment {
                     });
                 }
                 Err(_) => {
-                    return Err(LoxTermination::Error(LoxError {
+                    return Err(NoaTermination::Error(NoaError {
                         line: 0,
                         location: "N/A".to_owned(),
                         message: "Failed to lock environemnt".to_owned(),
@@ -53,7 +53,7 @@ impl Environment {
     pub fn define(self: &mut Self, identifier: String, value: Object) {
         self.values.insert(identifier, value);
     }
-    pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), LoxTermination> {
+    pub fn assign(self: &mut Self, token: &Token, value: Object) -> Result<(), NoaTermination> {
         if !self.values.contains_key(&token.lexeme) {
             match &self.enclosing {
                 Some(enclosing) => match enclosing.lock() {
@@ -63,7 +63,7 @@ impl Environment {
                     }
                 },
                 None => {
-                    return Err(LoxTermination::Error(LoxError {
+                    return Err(NoaTermination::Error(NoaError {
                         line: token.line,
                         location: token.lexeme.clone(),
                         message: format!("Unkown variable"),
@@ -75,7 +75,7 @@ impl Environment {
         Ok(())
     }
 
-    pub fn get(self: &mut Self, token: &Token) -> Result<Object, LoxTermination> {
+    pub fn get(self: &mut Self, token: &Token) -> Result<Object, NoaTermination> {
         match self.values.get(&token.lexeme) {
             Some(value) => Ok(value.clone()),
             None => match &self.enclosing {
@@ -85,7 +85,7 @@ impl Environment {
                         panic!("Failed to get enclosing environment")
                     }
                 },
-                None => Err(LoxTermination::Error(LoxError {
+                None => Err(NoaTermination::Error(NoaError {
                     line: token.line,
                     location: token.lexeme.clone(),
                     message: format!("Unkown variable"),

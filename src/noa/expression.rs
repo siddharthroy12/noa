@@ -3,9 +3,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{
+use crate::noa::{
     environment::Environment,
-    error::{LoxError, LoxTermination},
+    error::{NoaError, NoaTermination},
     token::{Token, TokenType},
     types::{Number, Object, Table},
 };
@@ -116,13 +116,13 @@ impl Expression {
         return res;
     }
 
-    fn get_number_object(object: Object, line: usize) -> Result<Number, LoxTermination> {
+    fn get_number_object(object: Object, line: usize) -> Result<Number, NoaTermination> {
         match object {
             Object::Number(n) => {
                 return Ok(n);
             }
             _ => {
-                return Err(LoxTermination::Error(LoxError {
+                return Err(NoaTermination::Error(NoaError {
                     line: line,
                     location: format!("\"{}\"", object.to_string()),
                     message: format!("{} is not a valid number", object.to_string()),
@@ -134,7 +134,7 @@ impl Expression {
     pub fn evaluate(
         self: &Self,
         environment: Arc<Mutex<Environment>>,
-    ) -> Result<Object, LoxTermination> {
+    ) -> Result<Object, NoaTermination> {
         match self {
             Expression::Binary(binary_expression) => {
                 let left_value = binary_expression.left.evaluate(environment.clone())?;
@@ -214,7 +214,7 @@ impl Expression {
                         let n2 =
                             Self::get_number_object(right_value, binary_expression.operator.line)?;
                         if n2 == 0.0 {
-                            return Err(LoxTermination::Error(LoxError {
+                            return Err(NoaTermination::Error(NoaError {
                                 line: binary_expression.operator.line,
                                 location: n2.to_string(),
                                 message: format!("Cannot divide by zero"),
@@ -224,7 +224,7 @@ impl Expression {
                     }
 
                     _ => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: binary_expression.operator.line,
                             location: binary_expression.operator.lexeme.clone(),
                             message: format!("Unknown binary operator"),
@@ -250,7 +250,7 @@ impl Expression {
                         return Ok(Object::Number(-n1));
                     }
                     _ => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: unary_expression.operator.line,
                             location: unary_expression.operator.lexeme.clone(),
                             message: format!("Unknown unary operator"),
@@ -277,7 +277,7 @@ impl Expression {
                         mutex.assign(&assgin_expression.token, value.clone())?;
                     }
                     Err(_) => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: assgin_expression.token.line,
                             location: assgin_expression.token.lexeme.clone(),
                             message: format!("Failed to get local scope memory"),
@@ -292,7 +292,7 @@ impl Expression {
                     return Ok(value);
                 }
                 Err(_) => {
-                    return Err(LoxTermination::Error(LoxError {
+                    return Err(NoaTermination::Error(NoaError {
                         line: variable_expression.token.line,
                         location: variable_expression.token.lexeme.clone(),
                         message: format!("Failed to get local scope memory"),
@@ -338,7 +338,7 @@ impl Expression {
                 match callee {
                     Object::Function(function) => {
                         if function.params.len() != call_expression.arguments.len() {
-                            return Err(LoxTermination::Error(LoxError {
+                            return Err(NoaTermination::Error(NoaError {
                                 line: call_expression.paren.line,
                                 location: "(".to_owned(),
                                 message: format!(
@@ -355,7 +355,7 @@ impl Expression {
                         return function.call(arguments);
                     }
                     _ => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: call_expression.paren.line,
                             location: "(".to_owned(),
                             message: format!("{} is not callable", callee.to_string()),
@@ -380,7 +380,7 @@ impl Expression {
                         Ok(table) => match key {
                             Object::String(key) => Ok(table.get_value(key)),
                             _ => {
-                                return Err(LoxTermination::Error(LoxError {
+                                return Err(NoaTermination::Error(NoaError {
                                     line: key_access.left_bracket.line,
                                     location: key_access.left_bracket.lexeme.clone(),
                                     message: format!("Key must be a string"),
@@ -388,7 +388,7 @@ impl Expression {
                             }
                         },
                         Err(_) => {
-                            return Err(LoxTermination::Error(LoxError {
+                            return Err(NoaTermination::Error(NoaError {
                                 line: key_access.left_bracket.line,
                                 location: key_access.left_bracket.lexeme.clone(),
                                 message: format!("Failed to lock table"),
@@ -396,7 +396,7 @@ impl Expression {
                         }
                     },
                     _ => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: key_access.left_bracket.line,
                             location: key_access.left_bracket.lexeme.clone(),
                             message: format!("Key access expression can only be used on tables"),
@@ -420,7 +420,7 @@ impl Expression {
                                             table.set_value(key, value);
                                         }
                                         Err(_) => {
-                                            return Err(LoxTermination::Error(LoxError {
+                                            return Err(NoaTermination::Error(NoaError {
                                                 line: key_access.left_bracket.line,
                                                 location: key_access.left_bracket.lexeme.clone(),
                                                 message: format!("Failed to lock table"),
@@ -428,7 +428,7 @@ impl Expression {
                                         }
                                     },
                                     _ => {
-                                        return Err(LoxTermination::Error(LoxError {
+                                        return Err(NoaTermination::Error(NoaError {
                                             line: key_access.left_bracket.line,
                                             location: key_access.left_bracket.lexeme.clone(),
                                             message: format!(
@@ -439,7 +439,7 @@ impl Expression {
                                 }
                             }
                             _ => {
-                                return Err(LoxTermination::Error(LoxError {
+                                return Err(NoaTermination::Error(NoaError {
                                     line: key_access.left_bracket.line,
                                     location: key_access.left_bracket.lexeme.clone(),
                                     message: format!("Key must be a string"),

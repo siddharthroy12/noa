@@ -3,9 +3,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{
+use crate::noa::{
     environment::Environment,
-    error::LoxError,
+    error::NoaError,
     interpreter::Interpreter,
     library::print,
     parser::Parser,
@@ -22,13 +22,13 @@ mod scanner;
 mod statement;
 mod token;
 mod types;
-pub struct Lox {
+pub struct Noa {
     interpreter: Interpreter,
 }
 
-impl Lox {
+impl Noa {
     pub fn new() -> Self {
-        return Lox {
+        return Noa {
             interpreter: Interpreter::new(),
         };
     }
@@ -50,17 +50,17 @@ impl Lox {
     pub fn run(self: &mut Self, src: String) -> Result<(), String> {
         let mut scanner = Scanner::new(src);
         if let Err(err) = scanner.scan_tokens() {
-            return Err(Self::report_lox_error(err));
+            return Err(Self::report_noa_error(err));
         }
 
         let mut parser: Parser = Parser::new(scanner.tokens);
         match parser.parse() {
             Err(err) => {
-                return Err(Self::report_lox_error(err));
+                return Err(Self::report_noa_error(err));
             }
             Ok(statements) => match self.interpreter.execute(statements) {
                 Err(err) => {
-                    return Err(Self::report_lox_error(err));
+                    return Err(Self::report_noa_error(err));
                 }
                 _ => {}
             },
@@ -76,7 +76,7 @@ impl Lox {
             Err(_) => return Err("Failed to read the file".to_string()),
         }
     }
-    pub fn report_lox_error(error: LoxError) -> String {
+    pub fn report_noa_error(error: NoaError) -> String {
         return format!(
             "[line \"{}\"] Error at '{}': {}",
             error.line, error.location, error.message

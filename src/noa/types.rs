@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{environment::Environment, error::LoxTermination, statement::Statement};
+use crate::noa::{environment::Environment, error::NoaTermination, statement::Statement};
 
 pub type Number = f64;
 
@@ -17,12 +17,12 @@ pub struct Function {
         fn(
             arguments: &Vec<Object>,
             environment: Arc<Mutex<Environment>>,
-        ) -> Result<Object, LoxTermination>,
+        ) -> Result<Object, NoaTermination>,
     >,
 }
 
 impl Function {
-    pub fn call(self: &Self, arguments: Vec<Object>) -> Result<Object, LoxTermination> {
+    pub fn call(self: &Self, arguments: Vec<Object>) -> Result<Object, NoaTermination> {
         let mut environment = Environment::new();
         environment.enclose(self.environment.clone());
         for (i, arg) in arguments.iter().enumerate() {
@@ -39,14 +39,14 @@ impl Function {
         match &self.body {
             Some(block) => match block.execute(environment) {
                 Err(e) => match e {
-                    LoxTermination::Error(_) => {
+                    NoaTermination::Error(_) => {
                         return Err(e);
                     }
-                    LoxTermination::Return(object) => {
+                    NoaTermination::Return(object) => {
                         return Ok(object);
                     }
-                    LoxTermination::Break => todo!(),
-                    LoxTermination::Continue => todo!(),
+                    NoaTermination::Break => todo!(),
+                    NoaTermination::Continue => todo!(),
                 },
                 _ => {}
             },

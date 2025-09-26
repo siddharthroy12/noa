@@ -1,10 +1,10 @@
-# Rlox
+# Noa
 
-Rlox is a toy programming language written in Rust.
+Noa is a toy programming language written in Rust.
 
-Rlox is made to learn how to write interpreters. I have been reading [Crafting Interpreters](https://craftinginterpreters.com/) to learn how to build interpreters.
+Noa is made to learn how to write interpreters. I have been reading [Crafting Interpreters](https://craftinginterpreters.com/) to learn how to build interpreters.
 
-To learn how to use this langauge, refer to the [sample.rlox](./sample.rlox) file, which contains all the featues this langauge has.
+To learn how to use this langauge, refer to the [sample.noa](./sample.noa) file, which contains all the featues this langauge has.
 
 ## Building
 
@@ -13,9 +13,9 @@ To learn how to use this langauge, refer to the [sample.rlox](./sample.rlox) fil
 
 ## Usage
 
-`rlox [script]` will run the script.
+`noa [script]` will run the script.
 
-`rlox` will run the interpreter in REPL mode.
+`noa` will run the interpreter in REPL mode.
 
 ## Grammar
 
@@ -26,5 +26,4 @@ If you are interested in the grammar definitions of this language you can read i
 - Add break expression;
 - Add ++ -- expression;
 - Add continue expression;
-- Rename this project into something catchy
 - Profit

@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::lox::{
+use crate::noa::{
     environment::Environment,
-    error::{LoxError, LoxTermination},
+    error::{NoaError, NoaTermination},
     expression::Expression,
     token::Token,
     types::{Function, Object},
@@ -62,7 +62,7 @@ impl Statement {
     pub fn execute(
         self: &Self,
         environment: Arc<Mutex<Environment>>,
-    ) -> Result<(), LoxTermination> {
+    ) -> Result<(), NoaTermination> {
         match self {
             Statement::Expression(expression_statement) => {
                 expression_statement.expression.evaluate(environment)?;
@@ -78,7 +78,7 @@ impl Statement {
                         mutex.define(var_statement.identifier.lexeme.clone(), value);
                     }
                     Err(_) => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: var_statement.identifier.line,
                             location: var_statement.identifier.lexeme.clone(),
                             message: format!(
@@ -96,7 +96,7 @@ impl Statement {
                         mutex.enclose(environment);
                     }
                     Err(_) => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: 0,
                             location: format!("N/A"),
                             message: format!("Unable to create local scope for block"),
@@ -156,7 +156,7 @@ impl Statement {
                                 mutex.define(function_statement.name.lexeme.clone(), func.clone())
                             }
                             Err(_) => {
-                                return Err(LoxTermination::Error(LoxError {
+                                return Err(NoaTermination::Error(NoaError {
                                     line: 0,
                                     location: "N/A".to_owned(),
                                     message: "Failed to lock environment".to_owned(),
@@ -166,7 +166,7 @@ impl Statement {
                         mutex.define(function_statement.name.lexeme.clone(), func)
                     }
                     Err(_) => {
-                        return Err(LoxTermination::Error(LoxError {
+                        return Err(NoaTermination::Error(NoaError {
                             line: function_statement.name.line,
                             location: function_statement.name.lexeme.to_owned(),
                             message: "Failed to lock environment".to_owned(),
@@ -177,7 +177,7 @@ impl Statement {
             }
             Statement::Return(return_statement) => {
                 let value = return_statement.value.evaluate(environment)?;
-                return Err(LoxTermination::Return(value));
+                return Err(NoaTermination::Return(value));
             }
         }
     }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::lox::{
-    error::LoxError,
+use crate::noa::{
+    error::NoaError,
     token::TokenType,
     types::{Number, Object},
 };
@@ -62,11 +62,11 @@ impl Scanner {
         return self.current >= self.source.len();
     }
 
-    pub fn scan_tokens(self: &mut Self) -> Result<(), LoxError> {
+    pub fn scan_tokens(self: &mut Self) -> Result<(), NoaError> {
         while !self.is_at_end() {
             self.start = self.current;
             if let Err(message) = self.scan_token() {
-                return Err(LoxError {
+                return Err(NoaError {
                     line: self.line,
                     location: self.peek().to_string(),
                     message: message,
