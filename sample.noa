@@ -1,4 +1,4 @@
-// letiables
+// variables
 let a = 10; // Number
 let b = 10.20; // Floating Point Number
 let c = "Hello world"; // String
