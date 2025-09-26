@@ -93,4 +93,18 @@ impl Environment {
             },
         }
     }
+    pub fn get_by_string(self: &mut Self, key: String) -> Result<Object, ()> {
+        match self.values.get(&key) {
+            Some(value) => Ok(value.clone()),
+            None => match &self.enclosing {
+                Some(enclosing) => match enclosing.lock() {
+                    Ok(mut enclosing) => return enclosing.get_by_string(key),
+                    Err(_) => {
+                        panic!("Failed to get enclosing environment")
+                    }
+                },
+                None => Err(()),
+            },
+        }
+    }
 }

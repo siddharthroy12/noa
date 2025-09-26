@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use crate::lox::error::LoxError;
 use crate::lox::expression::{
     AssginExpression, BinaryExpression, CallExpression, Expression, GroupExpression,
-    LiteralExpression, LogicalExpression, TernaryExpression, UnaryExpression, VariableExpression,
+    KeyAccessAssignExpression, KeyAccessExpression, LiteralExpression, LogicalExpression,
+    TableExpression, TernaryExpression, UnaryExpression, VariableExpression,
 };
 use crate::lox::statement::{
     BlockStatement, ExpressionStatement, FunctionStatement, IfStatement, ReturnStatement,
@@ -305,10 +308,10 @@ impl Parser {
 
         return self.peek().token_type == *token_type;
     }
-    fn previous(self: &Self) -> &Token {
-        return &self.tokens[self.current - 1];
+    fn previous(self: &Self) -> Token {
+        return self.tokens[self.current - 1].clone();
     }
-    fn advance(self: &mut Self) -> &Token {
+    fn advance(self: &mut Self) -> Token {
         if !self.is_at_end() {
             self.current += 1;
         }
@@ -335,11 +338,18 @@ impl Parser {
 
         if self.match_token_types(&[TokenType::Equal]) {
             let value = self.parse_assignment()?;
+            let expr_clone = expr.clone();
 
             match expr {
                 Expression::Variable(variable) => {
                     return Ok(Expression::Assign(AssginExpression {
                         token: variable.token.clone(),
+                        expression: Box::new(value),
+                    }));
+                }
+                Expression::KeyAccess(_) => {
+                    return Ok(Expression::KeyAccessAssign(KeyAccessAssignExpression {
+                        key_access: Box::new(expr_clone),
                         expression: Box::new(value),
                     }));
                 }
@@ -480,7 +490,25 @@ impl Parser {
             }));
         }
 
-        return self.parse_call();
+        return self.parse_key_access();
+    }
+
+    fn parse_key_access(self: &mut Self) -> Result<Expression, String> {
+        let mut expression = self.parse_call()?;
+        if self.match_token_types(&[TokenType::LeftSquareBracket]) {
+            let key = self.parse_expression()?;
+            self.consume(
+                TokenType::RightSqureBracket,
+                "Expect ] after arguments.".to_owned(),
+            )?;
+            return Ok(Expression::KeyAccess(KeyAccessExpression {
+                target: Box::new(expression),
+                left_bracket: self.previous().clone(),
+                key: Box::new(key),
+            }));
+        }
+
+        return Ok(expression);
     }
 
     fn parse_call(self: &mut Self) -> Result<Expression, String> {
@@ -571,8 +599,32 @@ impl Parser {
                 }
             }
         }
+        if self.match_token_types(&[TokenType::LeftBrace]) {
+            return self.parse_table();
+        }
 
         return Err(format!("Unexpected token"));
+    }
+
+    fn parse_table(self: &mut Self) -> Result<Expression, String> {
+        let mut map: HashMap<String, Expression> = HashMap::new();
+
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            let key = self.consume(TokenType::String, "Expect string as a key".to_owned())?;
+            self.consume(TokenType::Colon, "Expect ':' after key".to_owned())?;
+
+            let expr = self.parse_expression().clone()?;
+            self.consume(TokenType::Comma, "Expect ',' after value".to_owned())?;
+
+            map.insert(key.litral.to_string(), expr);
+        }
+
+        self.consume(
+            TokenType::RightBrace,
+            "Expect '}' at the end of the table".to_owned(),
+        )?;
+
+        return Ok(Expression::Table(TableExpression { values: map }));
     }
 
     fn parse_comma_operator(self: &mut Self) -> Result<Expression, String> {
@@ -591,7 +643,7 @@ impl Parser {
         return Ok(expr);
     }
 
-    fn consume(self: &mut Self, token_type: TokenType, message: String) -> Result<&Token, String> {
+    fn consume(self: &mut Self, token_type: TokenType, message: String) -> Result<Token, String> {
         if self.check(&token_type) {
             return Ok(self.advance());
         }

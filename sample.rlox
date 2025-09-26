@@ -1,12 +1,22 @@
 // Variables
-var a = 10;
-var b = 10.20;
-var c = "Hello world";
-var d = true;
-var e = nil;
+var a = 10; // Number
+var b = 10.20; // Floating Point Number
+var c = "Hello world"; // String
+var d = true; // Boolean
+var e = nil; // Nil
+var a = {
+    "name": "Siddharth",
+    "properties": {
+        "age": 22,
+        "job": "Developer",        
+    },
+}; // Table
 
 // Arithmentic operators
-a = 10 + 20; a = 10 - 20; a = 10 / 20; a = 10 * 20;
+a = 10 + 20;
+a = 10 - 20;
+a = 10 / 20;
+a = 10 * 20;
 
 // String concat
 b = "Hello " + "World"; b = 10 + "Hello";
@@ -57,7 +67,6 @@ print(true and "Hello"); // Returns the right operand if both operands are truth
     }
 }
 
-print("for loop");
 for (var i = 0; i < 10 ; i = i + 1) {
     print(i);
 }
@@ -98,15 +107,19 @@ print(counter()); // 1
 print(counter()); // 2
 print(counter()); // 3
 
-var a = "global";
-{
-  fun showA() {
-    print(a);
-  }
+// Tables
 
-  showA();
-  var a = "block";
-  showA();
-}
-// This prints global global
-print(nil);
+var a = {
+    "name": "Siddharth",
+    "properties": {
+        "age": 22,
+        "job": "Developer",        
+    },
+};
+print(a);
+
+// Key access
+print(a["name"]);
+a["name"] = "Roy";
+print(a["name"]);
+

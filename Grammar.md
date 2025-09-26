@@ -14,7 +14,7 @@ return          _-> return expression? ";";
 while           -> "while" "(" expression ")" statement;
 for             -> "for" "(" (var_decl | expr_statement | ";") expression? ";" expression? ")" statement;
 if              -> "if" "(" expression ")" statement ("else" statement)?;
-block           -> "{" declaration* "}"
+block           -> "{" declaration* "}";
 expr_statement  -> expression ";";
 ```
 
@@ -22,7 +22,7 @@ expr_statement  -> expression ";";
 
 ```
 expression     -> assignment;
-assignment     -> IDENTIFIER "=" (assignment | ternary);
+assignment     -> IDENTIFIER | key_access "=" (assignment | ternary);
 or             -> and ("or" and)*;
 and            -> ternary ("and" ternary)*;
 ternary        -> equality ("?" equality ":" equality)?;
@@ -31,10 +31,13 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary
-               | call ;
-call           -> primary ("(" arguments? ")")*;
+               | call  | key_access;
+call           -> key_access ("(" arguments? ")")*;
 arguments      -> expression ("," expression)*;
-primary        -> NUMBER | STRING | "true" | "false" | "nil"| IDENTIFIER
+key_access      -> primary "[" expression "]";
+primary        -> NUMBER | STRING | "true" | "false" | "nil"| IDENTIFIER | table
                | "(" comma_operator ")";
 comma_operator -> expression ("," expression)*;
+table          -> "{" (key_value ",")* "}";
+key_value      -> STRING ":" expression;
 ```

@@ -1,10 +1,13 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use crate::lox::{
     environment::Environment,
     error::{LoxError, LoxTermination},
     token::{Token, TokenType},
-    types::{Number, Object},
+    types::{Number, Object, Table},
 };
 
 #[derive(Debug, Clone)]
@@ -16,8 +19,23 @@ pub enum Expression {
     Unary(UnaryExpression),
     Ternary(TernaryExpression),
     Assign(AssginExpression),
+    KeyAccessAssign(KeyAccessAssignExpression),
     Logical(LogicalExpression),
     Call(CallExpression),
+    Table(TableExpression),
+    KeyAccess(KeyAccessExpression),
+}
+
+#[derive(Debug, Clone)]
+pub struct KeyAccessExpression {
+    pub target: Box<Expression>,
+    pub left_bracket: Token,
+    pub key: Box<Expression>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TableExpression {
+    pub values: HashMap<String, Expression>,
 }
 
 #[derive(Debug, Clone)]
@@ -37,6 +55,12 @@ pub struct LogicalExpression {
 #[derive(Debug, Clone)]
 pub struct AssginExpression {
     pub token: Token,
+    pub expression: Box<Expression>,
+}
+
+#[derive(Debug, Clone)]
+pub struct KeyAccessAssignExpression {
+    pub key_access: Box<Expression>,
     pub expression: Box<Expression>,
 }
 
@@ -339,6 +363,95 @@ impl Expression {
                     }
                 }
             }
+            Expression::Table(table_expression) => {
+                let mut values: HashMap<String, Object> = HashMap::new();
+
+                for (key, val) in table_expression.values.iter() {
+                    values.insert(key.to_owned(), val.evaluate(environment.clone())?);
+                }
+
+                return Ok(Object::Table(Arc::new(Mutex::new(Table { values }))));
+            }
+            Expression::KeyAccess(key_access) => {
+                let target = key_access.target.evaluate(environment.clone())?;
+                let key = key_access.key.evaluate(environment.clone())?;
+                match target {
+                    Object::Table(mutex) => match mutex.lock() {
+                        Ok(table) => match key {
+                            Object::String(key) => Ok(table.get_value(key)),
+                            _ => {
+                                return Err(LoxTermination::Error(LoxError {
+                                    line: key_access.left_bracket.line,
+                                    location: key_access.left_bracket.lexeme.clone(),
+                                    message: format!("Key must be a string"),
+                                }));
+                            }
+                        },
+                        Err(_) => {
+                            return Err(LoxTermination::Error(LoxError {
+                                line: key_access.left_bracket.line,
+                                location: key_access.left_bracket.lexeme.clone(),
+                                message: format!("Failed to lock table"),
+                            }));
+                        }
+                    },
+                    _ => {
+                        return Err(LoxTermination::Error(LoxError {
+                            line: key_access.left_bracket.line,
+                            location: key_access.left_bracket.lexeme.clone(),
+                            message: format!("Key access expression can only be used on tables"),
+                        }));
+                    }
+                }
+            }
+            Expression::KeyAccessAssign(key_access_assignment) => {
+                match *key_access_assignment.key_access.clone() {
+                    Expression::KeyAccess(key_access) => {
+                        let key = key_access.key.evaluate(environment.clone())?;
+                        let value = key_access_assignment
+                            .expression
+                            .evaluate(environment.clone())?;
+                        match key {
+                            Object::String(key) => {
+                                let target = key_access.target.evaluate(environment.clone())?;
+                                match target {
+                                    Object::Table(mutex) => match mutex.lock() {
+                                        Ok(mut table) => {
+                                            table.set_value(key, value);
+                                        }
+                                        Err(_) => {
+                                            return Err(LoxTermination::Error(LoxError {
+                                                line: key_access.left_bracket.line,
+                                                location: key_access.left_bracket.lexeme.clone(),
+                                                message: format!("Failed to lock table"),
+                                            }));
+                                        }
+                                    },
+                                    _ => {
+                                        return Err(LoxTermination::Error(LoxError {
+                                            line: key_access.left_bracket.line,
+                                            location: key_access.left_bracket.lexeme.clone(),
+                                            message: format!(
+                                                "Key access expression can only be used on tables"
+                                            ),
+                                        }));
+                                    }
+                                }
+                            }
+                            _ => {
+                                return Err(LoxTermination::Error(LoxError {
+                                    line: key_access.left_bracket.line,
+                                    location: key_access.left_bracket.lexeme.clone(),
+                                    message: format!("Key must be a string"),
+                                }));
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+
+                return Ok(Object::Nil);
+            }
         }
     }
     pub fn print(self: &Self) -> String {
@@ -368,7 +481,7 @@ impl Expression {
             }
             Expression::Assign(assgin_expression) => {
                 return self.parenthesize(
-                    &format!("= {}", assgin_expression.token.lexeme),
+                    &format!("{} =", assgin_expression.token.lexeme),
                     &[assgin_expression.expression.clone()],
                 );
             }
@@ -391,6 +504,29 @@ impl Expression {
                     .map(|arg| Box::new(arg.clone()))
                     .collect();
                 return self.parenthesize(&format!("call"), &expressions);
+            }
+            Expression::Table(table_expression) => {
+                let expressions: Vec<Box<Expression>> = table_expression
+                    .values
+                    .values()
+                    .map(|arg| Box::new(arg.clone()))
+                    .collect();
+                return self.parenthesize(&format!("table"), &expressions);
+            }
+            Expression::KeyAccess(key_access) => {
+                return self.parenthesize(
+                    &format!("[]"),
+                    &[key_access.target.clone(), key_access.key.clone()],
+                );
+            }
+            Expression::KeyAccessAssign(table_assgin_expression) => {
+                return self.parenthesize(
+                    &format!("[] ="),
+                    &[
+                        table_assgin_expression.key_access.clone(),
+                        table_assgin_expression.expression.clone(),
+                    ],
+                );
             }
         }
     }

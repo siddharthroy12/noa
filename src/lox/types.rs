@@ -1,13 +1,10 @@
 use std::{
-    fmt,
+    collections::HashMap,
+    fmt::{self, Error},
     sync::{Arc, Mutex},
 };
 
-use crate::lox::{
-    environment::{self, Environment},
-    error::LoxTermination,
-    statement::Statement,
-};
+use crate::lox::{environment::Environment, error::LoxTermination, statement::Statement};
 
 pub type Number = f64;
 
@@ -61,11 +58,31 @@ impl Function {
 }
 
 #[derive(Debug, Clone)]
+pub struct Table {
+    pub values: HashMap<String, Object>,
+}
+
+impl Table {
+    pub fn get_value(self: &Self, key: String) -> Object {
+        match self.values.get(&key) {
+            Some(value) => {
+                return value.clone();
+            }
+            None => Object::Nil, // Somehow this is returned
+        }
+    }
+    pub fn set_value(self: &mut Self, key: String, value: Object) {
+        self.values.insert(key, value);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum Object {
     Number(Number),
     String(String),
     Bool(bool),
     Function(Box<Function>),
+    Table(Arc<Mutex<Table>>),
     Nil,
 }
 
@@ -83,6 +100,7 @@ impl Object {
                 return false;
             }
             Object::Function(_) => return true,
+            Object::Table(_) => return true,
         }
     }
     pub fn is_equal(self: &Self, comp: &Object) -> bool {
@@ -205,6 +223,19 @@ impl fmt::Display for Object {
             Object::Bool(b) => write!(f, "{}", b),
             Object::Nil => write!(f, "nil"),
             Object::Function(_) => write!(f, "[Function]"),
+            Object::Table(table) => {
+                write!(f, "{{")?;
+                match table.lock() {
+                    Ok(mutex) => {
+                        for (key, val) in mutex.values.iter() {
+                            write!(f, "{}:{},", key, val.to_string())?;
+                        }
+                    }
+                    Err(_) => return Err(std::fmt::Error),
+                }
+                write!(f, "}}")?;
+                Ok(())
+            }
         }
     }
 }
