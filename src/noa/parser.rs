@@ -483,14 +483,14 @@ impl Parser {
     fn parse_unary(self: &mut Self) -> Result<Expression, String> {
         if self.match_token_types(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
-            let right = self.parse_call()?;
+            let right = self.parse_call_or_key_access()?;
             return Ok(Expression::Unary(UnaryExpression {
                 operator: operator,
                 right: Box::new(right),
             }));
         }
 
-        return self.parse_call();
+        return self.parse_call_or_key_access();
     }
 
     fn parse_call_or_key_access(self: &mut Self) -> Result<Expression, String> {
