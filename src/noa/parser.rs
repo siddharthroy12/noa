@@ -74,7 +74,10 @@ impl Parser {
             let expression = self.parse_expression()?;
             initializer = Some(Box::new(expression));
         }
-        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' at the end of statement".to_string(),
+        )?;
 
         return Ok(Statement::Var(VarStatement {
             initializer,
@@ -288,7 +291,10 @@ impl Parser {
 
     pub fn parse_expression_statement(self: &mut Self) -> Result<Statement, String> {
         let expr = self.parse_expression()?;
-        self.consume(TokenType::Semicolon, "Expect ';' after value".to_string())?;
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' at the end of statement".to_string(),
+        )?;
 
         return Ok(Statement::Expression(ExpressionStatement {
             expression: Box::new(expr),

@@ -6,20 +6,24 @@ use std::{
 use crate::noa::{
     environment::Environment,
     error::NoaError,
+    generic::len,
     interpreter::Interpreter,
-    library::print,
+    io::{input, print, println},
     parser::Parser,
     scanner::Scanner,
+    string::str,
     types::{Function, Object},
 };
 mod environment;
 mod error;
 mod expression;
+mod generic;
 mod interpreter;
-mod library;
+mod io;
 mod parser;
 mod scanner;
 mod statement;
+mod string;
 mod token;
 mod types;
 pub struct Noa {
@@ -34,13 +38,54 @@ impl Noa {
     }
     pub fn load_libray(self: &mut Self) {
         let env = Arc::new(Mutex::new(Environment::new()));
+        // IO
+        self.setup_global_object(
+            "println".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec!["str".to_string()],
+                body: None,
+                callback: Some(println),
+                environment: env.clone(),
+            })),
+        );
         self.setup_global_object(
             "print".to_owned(),
             Object::Function(Box::new(Function {
                 params: vec!["str".to_string()],
                 body: None,
                 callback: Some(print),
-                environment: env,
+                environment: env.clone(),
+            })),
+        );
+        self.setup_global_object(
+            "input".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec![],
+                body: None,
+                callback: Some(input),
+                environment: env.clone(),
+            })),
+        );
+
+        // String
+        self.setup_global_object(
+            "str".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec!["any".to_string()],
+                body: None,
+                callback: Some(str),
+                environment: env.clone(),
+            })),
+        );
+
+        // Generic
+        self.setup_global_object(
+            "len".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec!["any".to_string()],
+                body: None,
+                callback: Some(len),
+                environment: env.clone(),
             })),
         );
     }
