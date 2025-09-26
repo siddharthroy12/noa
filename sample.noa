@@ -19,7 +19,8 @@ a = 10 / 20;
 a = 10 * 20;
 
 // String concat
-b = "Hello " + "World"; b = 10 + "Hello";
+b = "Hello " + "World";
+b = 10 + "Hello";
 
 // Ternary operator
 a = 10 > 20 ? "10 is bigger than 20" : "10 is not bigger than 20";
