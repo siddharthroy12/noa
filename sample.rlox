@@ -123,3 +123,24 @@ print(a["name"]);
 a["name"] = "Roy";
 print(a["name"]);
 
+
+// Create OOP like objects
+fun create_actor() {
+    var a = {
+        "health": 100,
+    };
+
+    fun take_damage(amount) {
+        a["health"] = a["health"] - amount;
+    }
+
+    a["take_damage"] = take_damage;
+
+    return a;
+}
+
+var actor1 = create_actor();
+print(actor1);
+actor1["take_damage"](10);
+print(actor1);
+print((create_actor())["health"]);

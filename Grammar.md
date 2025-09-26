@@ -31,10 +31,10 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary
-               | call  | key_access;
+               | call;
 call           -> key_access ("(" arguments? ")")*;
 arguments      -> expression ("," expression)*;
-key_access      -> primary "[" expression "]";
+key_access     -> primary "[" expression "]";
 primary        -> NUMBER | STRING | "true" | "false" | "nil"| IDENTIFIER | table
                | "(" comma_operator ")";
 comma_operator -> expression ("," expression)*;
