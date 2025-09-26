@@ -24,7 +24,7 @@ If you are interested in the grammar definitions of this language you can read i
 
 ## TODO
 
-- Add break statement;
-- Add ++ -- expression;
-- Add continue statement;
+- Add break statement
+- Add ++ -- expression
+- Add continue statement
 - Add standard library functions
