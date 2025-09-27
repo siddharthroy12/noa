@@ -1,0 +1,21 @@
+print("Enter a number:");
+let inp = input();
+
+inp = str_to_num(inp);
+
+if (inp == nil) {
+    println("Not a valid number");
+    exit(1);
+}
+
+fn fib(n) {
+    if (n <= 0) {
+        return 0;
+    }
+    if (n == 1) {
+        return 1;
+    }
+    return fib(n-1) + fib(n-2);
+}
+
+println("Sum of fib(n): " + fib(inp));

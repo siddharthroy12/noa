@@ -135,8 +135,10 @@ let x = input();
 
 // String
 str(x); // to string
+str_to_num(x) // Convert string to number. Returns nil if string is not convertable to number
 
 // Generic
 len("Hello"); // 5
 len({ "a": 1, "b": 2 }); // 2
+exit(status_code) // Exit with status code
 ```

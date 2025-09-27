@@ -125,7 +125,7 @@ impl Expression {
                 return Err(NoaTermination::Error(NoaError {
                     line: line,
                     location: format!("\"{}\"", object.to_string()),
-                    message: format!("{} is not a valid number", object.to_string()),
+                    message: format!("\"{}\" is not a valid number", object.to_string()),
                 }));
             }
         }

@@ -5,7 +5,7 @@ use crate::noa::{
     environment::{self, Environment},
     error::NoaError,
     statement::Statement,
-    types::Object,
+    types::{Number, Object},
 };
 
 pub struct Interpreter {
@@ -26,7 +26,7 @@ impl Interpreter {
             Err(_) => panic!("Failed to set global object {}", name),
         }
     }
-    pub fn execute(self: &mut Self, statements: Vec<Statement>) -> Result<(), NoaError> {
+    pub fn execute(self: &mut Self, statements: Vec<Statement>) -> Result<(Number), NoaError> {
         for statement in statements {
             match statement.execute(self.environment.clone()) {
                 Err(e) => match e {
@@ -52,11 +52,12 @@ impl Interpreter {
                             message: String::from("continue can only be used loops"),
                         });
                     }
+                    super::error::NoaTermination::Exit(num) => return Ok(num),
                 },
                 _ => {}
             }
         }
 
-        Ok(())
+        Ok(0.0)
     }
 }

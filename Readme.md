@@ -16,8 +16,6 @@ Read the [cheatsheet](./Cheatsheet.md) or [sample.noa](./sample.noa) file.
 
 `noa [script]` will run the script.
 
-`noa` will run the interpreter in REPL mode.
-
 ## Grammar
 
 If you are interested in the grammar definitions of this language you can read it [here](./Grammar.md).

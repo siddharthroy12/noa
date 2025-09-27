@@ -6,13 +6,13 @@ use std::{
 use crate::noa::{
     environment::Environment,
     error::NoaError,
-    generic::len,
+    generic::{exit, len},
     interpreter::Interpreter,
     io::{input, print, println},
     parser::Parser,
     scanner::Scanner,
-    string::str,
-    types::{Function, Object},
+    string::{str, str_to_num},
+    types::{Function, Number, Object},
 };
 mod environment;
 mod error;
@@ -20,6 +20,7 @@ mod expression;
 mod generic;
 mod interpreter;
 mod io;
+mod number;
 mod parser;
 mod scanner;
 mod statement;
@@ -77,6 +78,17 @@ impl Noa {
                 environment: env.clone(),
             })),
         );
+        self.setup_global_object(
+            "str_to_num".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec!["str".to_string()],
+                body: None,
+                callback: Some(str_to_num),
+                environment: env.clone(),
+            })),
+        );
+
+        // Number
 
         // Generic
         self.setup_global_object(
@@ -88,11 +100,20 @@ impl Noa {
                 environment: env.clone(),
             })),
         );
+        self.setup_global_object(
+            "exit".to_owned(),
+            Object::Function(Box::new(Function {
+                params: vec!["num".to_string()],
+                body: None,
+                callback: Some(exit),
+                environment: env.clone(),
+            })),
+        );
     }
     pub fn setup_global_object(self: &mut Self, identifier: String, object: Object) {
         self.interpreter.setup_global_object(identifier, object);
     }
-    pub fn run(self: &mut Self, src: String) -> Result<(), String> {
+    pub fn run(self: &mut Self, src: String) -> Result<Number, String> {
         let mut scanner = Scanner::new(src);
         if let Err(err) = scanner.scan_tokens() {
             return Err(Self::report_noa_error(err));
@@ -107,16 +128,17 @@ impl Noa {
                 Err(err) => {
                     return Err(Self::report_noa_error(err));
                 }
-                _ => {}
+                Ok(num) => {
+                    return Ok(num);
+                }
             },
         }
-        return Ok(());
     }
-    pub fn run_file(self: &mut Self, path: String) -> Result<(), String> {
+    pub fn run_file(self: &mut Self, path: String) -> Result<(Number), String> {
         match fs::read_to_string(path) {
             Ok(content) => {
-                self.run(content)?;
-                Ok(())
+                let num = self.run(content)?;
+                Ok(num)
             }
             Err(_) => return Err("Failed to read the file".to_string()),
         }

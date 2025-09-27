@@ -1,10 +1,11 @@
-use crate::noa::types::Object;
+use crate::noa::types::{Number, Object};
 
 pub enum NoaTermination {
     Error(NoaError),
     Return(Object),
     Break,
     Continue,
+    Exit(Number),
 }
 
 pub struct NoaError {

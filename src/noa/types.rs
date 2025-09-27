@@ -39,14 +39,12 @@ impl Function {
         match &self.body {
             Some(block) => match block.execute(environment) {
                 Err(e) => match e {
-                    NoaTermination::Error(_) => {
-                        return Err(e);
-                    }
                     NoaTermination::Return(object) => {
                         return Ok(object);
                     }
-                    NoaTermination::Break => todo!(),
-                    NoaTermination::Continue => todo!(),
+                    _ => {
+                        return Err(e);
+                    }
                 },
                 _ => {}
             },
