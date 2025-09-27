@@ -4,7 +4,9 @@ Noa is a lightweight, embeddable scripting language written in Rust.
 
 ## Learn Noa
 
-Read the [cheatsheet](./Cheatsheet.md) or [sample.noa](./sample.noa) file.
+- [Cheatsheet](./Cheatsheet.md)
+- [Sample Script](./sample.noa)
+- [Examples](./examples)
 
 ## Build Noa
 
